@@ -13,14 +13,12 @@ const MEDIA_ROOT = process.env.MEDIA_ROOT || '/media';
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(MEDIA_ROOT, 'converted');
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT || '1', 10);
 
-// Ensure output dir exists
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', '..', 'public')));
 
-// ---- Safe path resolution (prevent escaping MEDIA_ROOT) ----
 function safeResolve(relPath) {
   const abs = path.resolve(MEDIA_ROOT, relPath || '.');
   const rootReal = fs.realpathSync(MEDIA_ROOT);
@@ -30,7 +28,6 @@ function safeResolve(relPath) {
   return abs;
 }
 
-// ---- Browse files ----
 app.get('/api/browse', async (req, res) => {
   try {
     const rel = req.query.path || '';
@@ -56,16 +53,12 @@ app.get('/api/browse', async (req, res) => {
   }
 });
 
-// ---- Probe an MKV (or any media file) ----
 app.get('/api/probe', (req, res) => {
   try {
     const abs = safeResolve(req.query.path);
     const ff = spawn('ffprobe', [
-      '-v', 'error',
-      '-print_format', 'json',
-      '-show_format',
-      '-show_streams',
-      abs
+      '-v', 'error', '-print_format', 'json',
+      '-show_format', '-show_streams', abs
     ]);
     let out = '', err = '';
     ff.stdout.on('data', d => out += d);
@@ -106,34 +99,24 @@ app.get('/api/probe', (req, res) => {
   }
 });
 
-// ---- Job Queue ----
-const jobs = new Map(); // id -> job
+const jobs = new Map();
 let running = 0;
 const wss = new WebSocketServer({ noServer: true });
 const sockets = new Set();
 
 function broadcast(msg) {
   const data = JSON.stringify(msg);
-  for (const ws of sockets) {
-    if (ws.readyState === 1) ws.send(data);
-  }
+  for (const ws of sockets) if (ws.readyState === 1) ws.send(data);
 }
 
 function publicJob(j) {
   return {
-    id: j.id,
-    input: j.input,
-    output: j.output,
-    status: j.status,
-    progress: j.progress,
-    fps: j.fps,
-    speed: j.speed,
-    eta: j.eta,
-    error: j.error,
-    startedAt: j.startedAt,
-    finishedAt: j.finishedAt,
-    inputSize: j.inputSize,
-    outputSize: j.outputSize
+    id: j.id, input: j.input, output: j.output, status: j.status,
+    progress: j.progress, fps: j.fps, speed: j.speed, eta: j.eta,
+    error: j.error, startedAt: j.startedAt, finishedAt: j.finishedAt,
+    inputSize: j.inputSize, outputSize: j.outputSize,
+    replacedOriginal: j.replacedOriginal || false,
+    finalPath: j.finalPath || j.output
   };
 }
 
@@ -166,21 +149,13 @@ app.delete('/api/jobs/:id', (req, res) => {
   broadcast({ type: 'removed', id: req.params.id });
 });
 
-// ---- Submit a conversion job ----
 app.post('/api/convert', async (req, res) => {
   try {
     const {
-      inputPath,
-      selectedStreams,   // array of stream indices to keep
-      crf = 20,
-      preset = 'slow',
-      videoCodec = 'libx264',
-      audioMode = 'auto', // 'auto' | 'aac' | 'copy'
-      audioBitrate = '192k',
-      subtitleMode = 'soft', // 'soft' (mov_text) | 'burn' | 'none'
-      burnSubIndex = null,
-      maxHeight = null, // e.g. 1080 to downscale
-      outputName = null
+      inputPath, selectedStreams, crf = 20, preset = 'slow',
+      videoCodec = 'libx264', audioMode = 'auto', audioBitrate = '192k',
+      subtitleMode = 'soft', burnSubIndex = null, maxHeight = null,
+      outputName = null, replaceOriginal = false
     } = req.body || {};
 
     if (!inputPath) return res.status(400).json({ error: 'inputPath required' });
@@ -203,7 +178,7 @@ app.post('/api/convert', async (req, res) => {
       outputSize: 0,
       status: 'queued',
       progress: 0,
-      opts: { selectedStreams, crf, preset, videoCodec, audioMode, audioBitrate, subtitleMode, burnSubIndex, maxHeight },
+      opts: { selectedStreams, crf, preset, videoCodec, audioMode, audioBitrate, subtitleMode, burnSubIndex, maxHeight, replaceOriginal },
       log: [],
       createdAt: Date.now()
     };
@@ -229,14 +204,13 @@ async function runJob(job) {
   job.startedAt = Date.now();
   broadcast({ type: 'job', job: publicJob(job) });
 
-  // Get duration for progress
   let duration = 0;
   try {
     const probeData = await probeFile(job.input);
     duration = probeData.format.duration || 0;
   } catch {}
 
-  const args = buildFfmpegArgs(job, duration);
+  const args = buildFfmpegArgs(job);
   job.log.push('ffmpeg ' + args.join(' '));
 
   const proc = spawn('ffmpeg', args);
@@ -244,7 +218,6 @@ async function runJob(job) {
 
   proc.stderr.on('data', chunk => {
     const s = chunk.toString();
-    // parse progress
     const tm = s.match(/time=(\d+):(\d+):(\d+\.\d+)/);
     if (tm && duration > 0) {
       const sec = (+tm[1]) * 3600 + (+tm[2]) * 60 + parseFloat(tm[3]);
@@ -263,11 +236,7 @@ async function runJob(job) {
     broadcast({ type: 'progress', id: job.id, progress: job.progress, fps: job.fps, speed: job.speed, eta: job.eta });
   });
 
-  proc.on('error', err => {
-    job.status = 'error';
-    job.error = err.message;
-    finishJob(job);
-  });
+  proc.on('error', err => { job.status = 'error'; job.error = err.message; finishJob(job); });
 
   proc.on('close', async code => {
     if (job.cancelled) {
@@ -277,12 +246,110 @@ async function runJob(job) {
       job.status = 'done';
       job.progress = 100;
       try { job.outputSize = (await fsp.stat(job.output)).size; } catch {}
+
+      // Replace original if requested
+      if (job.opts.replaceOriginal) {
+        try {
+          const finalPath = await replaceOriginalFile(job);
+          job.finalPath = finalPath;
+          job.replacedOriginal = true;
+        } catch (e) {
+          job.error = 'Converted OK but replace failed: ' + e.message;
+          job.log.push('[replace error] ' + e.message);
+        }
+      }
     } else {
       job.status = 'error';
       job.error = 'ffmpeg exited ' + code;
     }
     finishJob(job);
   });
+}
+
+// Move converted file into source directory (renamed to .mp4) and delete the source.
+// Safety rules:
+//  - Source must still exist and be readable
+//  - Converted output must exist and be non-zero
+//  - If target path == source path, skip source deletion (same file)
+//  - If target path already exists and isn't the source, fail rather than overwrite
+//  - Copy-then-verify-then-delete pattern to survive crashes across filesystems
+async function replaceOriginalFile(job) {
+  const src = job.input;
+  const out = job.output;
+  const srcDir = path.dirname(src);
+  const srcBase = path.basename(src, path.extname(src));
+  const targetPath = path.join(srcDir, srcBase + '.mp4');
+
+  // Verify output exists and has size
+  const outStat = await fsp.stat(out);
+  if (outStat.size < 1024) throw new Error('output file too small, aborting replace');
+
+  // Make sure source still exists
+  await fsp.access(src, fs.constants.R_OK);
+
+  const sameFile = path.resolve(targetPath) === path.resolve(src);
+
+  // If target path exists and isn't the source, refuse to clobber
+  if (!sameFile) {
+    try {
+      await fsp.access(targetPath);
+      throw new Error(`${targetPath} already exists, will not overwrite`);
+    } catch (e) {
+      if (e.code !== 'ENOENT' && !e.message.includes('already exists')) {
+        // unexpected error
+        throw e;
+      }
+      if (e.message.includes('already exists')) throw e;
+      // ENOENT is what we want
+    }
+  }
+
+  // Try a rename first (fast path, same filesystem)
+  let moved = false;
+  try {
+    if (!sameFile) {
+      // Rename output into place (same name as source with .mp4)
+      await fsp.rename(out, targetPath);
+      moved = true;
+    }
+  } catch (e) {
+    if (e.code === 'EXDEV') {
+      // Cross-device, fall back to copy + unlink
+      await copyFile(out, targetPath);
+      await fsp.unlink(out);
+      moved = true;
+    } else if (!sameFile) {
+      throw e;
+    }
+  }
+
+  // If target was the same as source (rare: source was already .mp4 in same dir),
+  // we still need to move the converted file over it.
+  if (sameFile) {
+    // Copy converted output on top of source
+    await copyFile(out, targetPath);
+    await fsp.unlink(out);
+    return targetPath; // source was replaced by copy, nothing more to delete
+  }
+
+  if (!moved) throw new Error('unexpected: file not moved');
+
+  // Delete the original source (different from target since extensions/paths differ)
+  try {
+    await fsp.unlink(src);
+  } catch (e) {
+    job.log.push('[replace warning] could not delete source: ' + e.message);
+  }
+
+  return targetPath;
+}
+
+async function copyFile(src, dst) {
+  await fsp.copyFile(src, dst);
+  // Sanity check size
+  const s = await fsp.stat(src);
+  const d = await fsp.stat(dst);
+  if (d.size !== s.size) throw new Error('copy size mismatch');
 }
 
 function finishJob(job) {
@@ -305,17 +372,13 @@ function probeFile(abs) {
   });
 }
 
-function buildFfmpegArgs(job, duration) {
+function buildFfmpegArgs(job) {
   const o = job.opts;
   const selected = new Set(o.selectedStreams || []);
   const args = ['-hide_banner', '-y', '-i', job.input];
 
-  // Map selected streams - we'll split by type to control codecs
-  const videoIdx = [...selected].filter(i => streamTypeCache.get(job.input + ':' + i) === 'video');
-  // We don't have the cache yet; safer to let user pass types. Use generic mapping:
   for (const i of selected) args.push('-map', `0:${i}`);
 
-  // Video
   args.push('-c:v', o.videoCodec || 'libx264');
   args.push('-preset', o.preset || 'slow');
   args.push('-crf', String(o.crf ?? 20));
@@ -323,51 +386,30 @@ function buildFfmpegArgs(job, duration) {
   args.push('-profile:v', 'high');
   args.push('-level', '4.1');
 
-  // Scale filter if requested, or burn-in subtitles
   const vf = [];
   if (o.maxHeight) vf.push(`scale=-2:'min(${parseInt(o.maxHeight, 10)},ih)'`);
   if (o.subtitleMode === 'burn' && o.burnSubIndex != null) {
-    // ffmpeg subtitles filter needs escaped path and stream index
     const escaped = job.input.replace(/\\/g, '/').replace(/:/g, '\\:').replace(/'/g, "\\'");
     vf.push(`subtitles='${escaped}':si=${o.burnSubIndex}`);
   }
   if (vf.length) args.push('-vf', vf.join(','));
 
-  // Audio
-  if (o.audioMode === 'copy') {
-    args.push('-c:a', 'copy');
-  } else if (o.audioMode === 'aac') {
-    args.push('-c:a', 'aac', '-b:a', o.audioBitrate || '192k');
-  } else {
-    // auto: transcode to AAC (MP4-safe). Using aac for compatibility.
-    args.push('-c:a', 'aac', '-b:a', o.audioBitrate || '192k');
-  }
+  if (o.audioMode === 'copy') args.push('-c:a', 'copy');
+  else args.push('-c:a', 'aac', '-b:a', o.audioBitrate || '192k');
 
-  // Subtitles
-  if (o.subtitleMode === 'soft') {
-    args.push('-c:s', 'mov_text');
-  } else {
-    // burn or none: drop subtitle streams
-    args.push('-sn');
-  }
+  if (o.subtitleMode === 'soft') args.push('-c:s', 'mov_text');
+  else args.push('-sn');
 
-  // MP4 tuning
   args.push('-movflags', '+faststart');
   args.push('-max_muxing_queue_size', '9999');
-
   args.push(job.output);
   return args;
 }
 
-// Unused cache placeholder
-const streamTypeCache = new Map();
-
-// ---- Health ----
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, mediaRoot: MEDIA_ROOT, outputDir: OUTPUT_DIR });
 });
 
-// ---- Start server + WS ----
 const server = http.createServer(app);
 server.on('upgrade', (req, socket, head) => {
   if (req.url === '/ws') {

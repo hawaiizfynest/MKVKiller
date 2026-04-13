@@ -492,6 +492,14 @@ function renderProbe(file, data) {
       </label>
     </div>
 
+    <div style="margin-top:14px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;display:flex;gap:10px;align-items:flex-start">
+      <input type="checkbox" id="replaceOriginal" style="width:16px;height:16px;margin-top:2px;accent-color:var(--err)">
+      <label for="replaceOriginal" style="font-size:13px;cursor:pointer;flex:1">
+        <b style="color:var(--err)">Replace original file</b>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px">After successful conversion, move the new MP4 into the source folder and <b>delete the original</b>. The replacement only happens if the conversion succeeds and the output is valid.</div>
+      </label>
+    </div>
+
     <div id="burnPick" style="display:none;margin-top:10px"></div>
     <div class="estimate" id="estimate" style="display:none"></div>
 
@@ -572,6 +580,8 @@ async function startConvert(file) {
   const selected = checks.filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
   if (!selected.length) { alert('Select at least one track.'); return; }
   if (!checks.some(c => c.checked && c.dataset.type === 'video')) { alert('At least one video track must be selected.'); return; }
+  const replaceOriginal = document.getElementById('replaceOriginal').checked;
+  if (replaceOriginal && !confirm(`This will DELETE the original file "${file.name}" after conversion. Continue?`)) return;
   const body = {
     inputPath: file.path,
     selectedStreams: selected,
@@ -581,7 +591,8 @@ async function startConvert(file) {
     audioBitrate: document.getElementById('audioBitrate').value + 'k',
     subtitleMode: document.getElementById('subtitleMode').value,
     maxHeight: document.getElementById('maxHeight').value || null,
-    outputName: document.getElementById('outputName').value
+    outputName: document.getElementById('outputName').value,
+    replaceOriginal: replaceOriginal
   };
   const burn = document.getElementById('burnSubIndex');
   if (body.subtitleMode === 'burn' && burn) body.burnSubIndex = parseInt(burn.value, 10);
@@ -764,6 +775,14 @@ function renderBatch() {
       </label>
     </div>
 
+    <div style="margin-top:14px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;display:flex;gap:10px;align-items:flex-start">
+      <input type="checkbox" id="bReplaceOriginal" style="width:16px;height:16px;margin-top:2px;accent-color:var(--err)">
+      <label for="bReplaceOriginal" style="font-size:13px;cursor:pointer;flex:1">
+        <b style="color:var(--err)">Replace originals</b>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px">For each successful conversion, move the new MP4 into the source folder and <b>delete the original</b>. Files that fail to convert are left untouched.</div>
+      </label>
+    </div>
+
     <div style="margin-top:18px;display:flex;gap:8px">
       <button id="startBatchBtn" class="success">Start Batch Conversion</button>
       <button class="ghost" id="clearBatchBtn">Clear queue</button>
@@ -822,6 +841,11 @@ function renderBatch() {
 async function startBatch() {
   const btn = document.getElementById('startBatchBtn');
   btn.disabled = true; btn.textContent = 'Submitting...';
+  const replaceOriginal = document.getElementById('bReplaceOriginal').checked;
+  if (replaceOriginal && !confirm(`Are you sure? This will DELETE the original files for every successful conversion in this batch (${state.queue.size} files).`)) {
+    btn.disabled = false; btn.textContent = 'Start Batch Conversion';
+    return;
+  }
   const opts = {
     crf: parseInt(document.getElementById('bCrf').value, 10),
     preset: document.getElementById('bPreset').value,
@@ -875,7 +899,8 @@ async function startBatch() {
         audioBitrate: abKbps + 'k',
         subtitleMode: opts.subtitleMode,
         maxHeight: opts.maxHeight,
-        outputName: f.name.replace(/\.[^.]+$/, '') + '.mp4'
+        outputName: f.name.replace(/\.[^.]+$/, '') + '.mp4',
+        replaceOriginal: replaceOriginal
       };
       const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
       if (r.ok) submitted++; else failed++;
@@ -903,6 +928,7 @@ function renderJobs() {
       sizeText = `${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;
     } else if (running) sizeText = `source: ${fmtBytes(j.inputSize)} (output size when done)`;
     else sizeText = fmtBytes(j.inputSize);
+    const replacedBadge = j.replacedOriginal ? `<span style="color:var(--good);font-weight:600">✓ replaced original</span>` : '';
     return `<div class="job">
       <div class="job-head">
         <div class="job-name">${j.input.split('/').pop()}</div>
@@ -915,6 +941,7 @@ function renderJobs() {
         ${j.fps ? `<span>${j.fps} fps</span>` : ''}
         ${j.eta ? `<span>ETA ${fmtDur(j.eta)}</span>` : ''}
         <span>${sizeText}</span>
+        ${replacedBadge}
         ${j.error ? `<span style="color:var(--err)">${j.error}</span>` : ''}
       </div>
       <div style="margin-top:8px;display:flex;gap:6px">

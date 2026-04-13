@@ -156,7 +156,8 @@ const state = {
   probe: null,
   jobs: [],
   queue: new Map(), // path -> {name, size}
-  currentFiles: []
+  currentFiles: [],
+  probeCache: new Map() // path -> probe data
 };
 
 function fmtBytes(n) {
@@ -591,6 +592,112 @@ async function startConvert(file) {
 }
 
 // ---- Batch ----
+async function probeForBatch(filePath) {
+  if (state.probeCache.has(filePath)) return state.probeCache.get(filePath);
+  try {
+    const r = await fetch('/api/probe?path=' + encodeURIComponent(filePath));
+    const d = await r.json();
+    if (d.error) return null;
+    state.probeCache.set(filePath, d);
+    return d;
+  } catch { return null; }
+}
+
+function estimateForBatchFile(probe, opts) {
+  if (!probe) return null;
+  const v = probe.streams.find(s => s.codec_type === 'video');
+  if (!v) return null;
+  const duration = probe.format.duration || 0;
+  if (!duration) return null;
+
+  let width = v.width || 1920, height = v.height || 1080;
+  if (opts.maxHeight) {
+    const t = parseInt(opts.maxHeight, 10);
+    if (height > t) { width = Math.round(width * (t/height)); height = t; }
+  }
+  const videoKbps = estimateVideoBitrateKbps(opts.crf, width, height, v.codec_name);
+
+  // Figure out which audio tracks would be kept based on trackMode
+  const audioStreams = probe.streams.filter(s => s.codec_type === 'audio');
+  let keptAudio = [];
+  if (opts.trackMode === 'all') keptAudio = audioStreams;
+  else if (opts.trackMode === 'default') keptAudio = audioStreams.filter(s => s.default || s.language === 'eng' || s.language === 'und');
+  else if (opts.trackMode === 'video-only') keptAudio = audioStreams.filter(s => s.default);
+  if (!keptAudio.length && audioStreams.length) keptAudio = [audioStreams[0]];
+
+  const maxCh = keptAudio.reduce((m, s) => Math.max(m, s.channels || 0), 0);
+  const abKbps = Math.max(opts.audioBitrateBase, snapAudioBitrate(recommendAudioBitrate(maxCh)));
+  const audioKbps = keptAudio.length * abKbps;
+
+  const bytes = ((videoKbps + audioKbps) * 1000 / 8) * duration;
+  return { bytes, videoKbps: Math.round(videoKbps), audioKbps, audioTracks: keptAudio.length, duration };
+}
+
+function getBatchOpts() {
+  return {
+    crf: parseInt(document.getElementById('bCrf').value, 10),
+    preset: document.getElementById('bPreset').value,
+    audioBitrateBase: parseInt(document.getElementById('bAudioBitrate').value, 10),
+    maxHeight: document.getElementById('bMaxHeight').value || null,
+    trackMode: document.getElementById('bTrackMode').value,
+    subtitleMode: document.getElementById('bSubtitleMode').value
+  };
+}
+
+async function updateBatchEstimates() {
+  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
+  const opts = getBatchOpts();
+  let totalIn = 0, totalOut = 0, estimatedCount = 0, unknownCount = 0;
+
+  for (const f of files) {
+    totalIn += parseInt(f.size, 10) || 0;
+    const row = document.querySelector(`.queue-file[data-path="${CSS.escape(f.path)}"] .estimate-cell`);
+    if (!row) continue;
+    const probe = state.probeCache.get(f.path);
+    if (!probe) { row.innerHTML = `<span style="color:var(--muted)">probing...</span>`; unknownCount++; continue; }
+    const est = estimateForBatchFile(probe, opts);
+    if (!est) { row.innerHTML = `<span style="color:var(--err)">?</span>`; unknownCount++; continue; }
+    const inSize = parseInt(f.size, 10) || 0;
+    const pct = inSize ? Math.round((1 - est.bytes/inSize) * 100) : 0;
+    const cls = pct >= 5 ? 'shrink' : (pct <= -5 ? 'grow' : '');
+    const sign = pct >= 0 ? '-' : '+';
+    row.innerHTML = `<b>${fmtBytes(est.bytes)}</b> <span class="${cls}" style="font-size:11px">${sign}${Math.abs(pct)}%</span>`;
+    totalOut += est.bytes;
+    estimatedCount++;
+  }
+
+  const sumEl = document.getElementById('batchSummary');
+  if (sumEl) {
+    const savePct = totalIn ? Math.round((1 - totalOut/totalIn) * 100) : 0;
+    const cls = savePct >= 5 ? 'shrink' : (savePct <= -5 ? 'grow' : '');
+    const sign = savePct >= 0 ? '-' : '+';
+    sumEl.innerHTML = `
+      <div class="estimate-row"><span class="estimate-label">Files queued</span>
+        <span class="estimate-value">${files.length}</span></div>
+      <div class="estimate-row"><span class="estimate-label">Total source size</span>
+        <span class="estimate-value">${fmtBytes(totalIn)}</span></div>
+      <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
+        <span class="estimate-value">${estimatedCount ? fmtBytes(totalOut) : '—'} ${estimatedCount ? `<span class="${cls}" style="font-size:12px;margin-left:6px">${sign}${Math.abs(savePct)}%</span>` : ''}</span></div>
+      ${unknownCount ? `<div class="estimate-note">${unknownCount} file(s) still probing or unestimatable.</div>` : ''}
+    `;
+  }
+}
+
+async function preprobeBatchFiles() {
+  const files = [...state.queue.keys()];
+  // Probe up to 3 at a time to not hammer the server
+  const queue = [...files];
+  const workers = Array(Math.min(3, queue.length)).fill(0).map(async () => {
+    while (queue.length) {
+      const p = queue.shift();
+      await probeForBatch(p);
+      updateBatchEstimates();
+    }
+  });
+  await Promise.all(workers);
+  updateBatchEstimates();
+}
+
 function renderBatch() {
   const el = document.getElementById('batchContent');
   if (!state.queue.size) {
@@ -600,10 +707,15 @@ function renderBatch() {
   const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
   const totalSize = files.reduce((s, f) => s + (parseInt(f.size, 10) || 0), 0);
   el.innerHTML = `
-    <div style="margin-bottom:14px;font-size:13px;color:var(--muted)">
-      ${files.length} file${files.length > 1 ? 's' : ''} queued · ${fmtBytes(totalSize)} total
+    <div class="estimate" id="batchSummary" style="margin-top:0;margin-bottom:14px">
+      <div class="estimate-row"><span class="estimate-label">Files queued</span>
+        <span class="estimate-value">${files.length}</span></div>
+      <div class="estimate-row"><span class="estimate-label">Total source size</span>
+        <span class="estimate-value">${fmtBytes(totalSize)}</span></div>
+      <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
+        <span class="estimate-value"><span style="color:var(--muted)">probing files...</span></span></div>
     </div>
-    <div id="queueList" style="margin-bottom:18px;max-height:300px;overflow-y:auto"></div>
+    <div id="queueList" style="margin-bottom:18px;max-height:360px;overflow-y:auto"></div>
 
     <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Shared encode settings</div>
     <div class="presets">
@@ -663,9 +775,11 @@ function renderBatch() {
 
   const ql = document.getElementById('queueList');
   ql.innerHTML = files.map(f => `
-    <div class="queue-file">
+    <div class="queue-file" data-path="${f.path}">
       <span class="name">${f.name}</span>
-      <span style="color:var(--muted);font-size:11px">${fmtBytes(f.size)}</span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0">${fmtBytes(f.size)}</span>
+      <span style="color:var(--muted);font-size:11px;flex-shrink:0">→</span>
+      <span class="estimate-cell" style="flex-shrink:0;min-width:100px;text-align:right;font-size:12px"><span style="color:var(--muted)">probing...</span></span>
       <span class="x" data-path="${f.path}" title="Remove">×</span>
     </div>
   `).join('');
@@ -685,11 +799,24 @@ function renderBatch() {
       const m = map[id];
       document.getElementById('bCrf').value = m.crf;
       document.getElementById('bPreset').value = m.preset;
+      updateBatchEstimates();
     };
+  });
+
+  // Re-estimate on any setting change
+  ['bCrf','bPreset','bAudioBitrate','bMaxHeight','bTrackMode','bSubtitleMode'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) {
+      e.addEventListener('change', updateBatchEstimates);
+      if (e.tagName === 'INPUT') e.addEventListener('input', updateBatchEstimates);
+    }
   });
 
   document.getElementById('clearBatchBtn').onclick = () => { state.queue.clear(); browse(state.cwd); updateQueueUI(); };
   document.getElementById('startBatchBtn').onclick = startBatch;
+
+  // Kick off probes
+  preprobeBatchFiles();
 }
 
 async function startBatch() {

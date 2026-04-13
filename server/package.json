@@ -1,0 +1,14 @@
+{
+  "name": "mkvforge-server",
+  "version": "1.0.0",
+  "description": "MKV to MP4 converter with per-track control",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0",
+    "nanoid": "^3.3.7"
+  }
+}

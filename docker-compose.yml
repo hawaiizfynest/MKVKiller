@@ -1,0 +1,26 @@
+services:
+  mkvforge:
+    build: .
+    # After the GitHub Actions build succeeds you can swap to the prebuilt image:
+    # image: ghcr.io/hawaiizfynest/mkvforge:latest
+    container_name: mkvforge
+    restart: unless-stopped
+    ports:
+      - "8089:8080"
+    environment:
+      - MEDIA_ROOT=/media
+      - OUTPUT_DIR=/media/converted
+      - MAX_CONCURRENT=1
+      # QNAP admin defaults. Change these if you want files owned by a
+      # different QNAP user. Check via SSH: `id <username>`
+      - PUID=1000
+      - PGID=0
+      - TZ=America/Los_Angeles
+    volumes:
+      # QuTS Hero shared-folder paths. Use the symlink form ( /share/<ShareName> )
+      # unless you have a reason to use the raw pool path.
+      # Examples for TS-h973AX on QuTS Hero:
+      #   /share/Multimedia                  (symlink, recommended)
+      #   /share/ZFS530_DATA/Multimedia      (raw ZFS pool path, if symlink missing)
+      #   /share/CACHEDEV1_DATA/Multimedia   (fallback on some QuTS builds)
+      - /share/Multimedia:/media

@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MKVForge</title>
+<style>
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1f232c;
+  --border: #2a2f3a;
+  --text: #e6e8ee;
+  --muted: #8b93a7;
+  --accent: #5b8cff;
+  --accent-2: #7aa2ff;
+  --good: #3ecf8e;
+  --warn: #ffb020;
+  --err: #ff5c5c;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
+header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel); }
+header h1 { font-size:18px; margin:0; letter-spacing:0.3px; }
+header h1 span { color:var(--accent-2); }
+main { display:grid; grid-template-columns: 360px 1fr; gap:0; height: calc(100vh - 53px); }
+.sidebar { border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; }
+.content { overflow-y:auto; padding:20px; }
+.panel { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; }
+.panel h2 { margin:0 0 12px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; }
+.path-bar { padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); word-break:break-all; }
+.file-list { list-style:none; margin:0; padding:0; }
+.file-list li { padding:8px 12px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; justify-content:space-between; gap:8px; font-size:13px; }
+.file-list li:hover { background:var(--panel-2); }
+.file-list li.selected { background:#243049; }
+.file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-list .size { color:var(--muted); font-size:11px; flex-shrink:0; }
+.file-list .icon { margin-right:6px; }
+button { background:var(--accent); color:white; border:none; padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:500; }
+button:hover { background:var(--accent-2); }
+button:disabled { opacity:0.5; cursor:not-allowed; }
+button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+button.ghost:hover { background:var(--panel-2); }
+button.danger { background:var(--err); }
+.track { display:flex; align-items:center; gap:10px; padding:8px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; }
+.track input[type=checkbox] { width:16px; height:16px; accent-color:var(--accent); }
+.track .badge { padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; }
+.badge.video { background:#3a2b5e; color:#c9b1ff; }
+.badge.audio { background:#1e4a3a; color:#9ce5c1; }
+.badge.subtitle { background:#5e3a2b; color:#ffc9a1; }
+.badge.other { background:#3a3a3a; color:#ccc; }
+.track .meta { flex:1; color:var(--muted); font-size:12px; }
+.track strong { color:var(--text); font-weight:500; }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
+label.field input, label.field select { padding:7px 9px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:5px; font-size:13px; }
+.job { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; }
+.job-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
+.job-name { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.status { padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase; }
+.status.queued { background:#3a3a3a; color:#ccc; }
+.status.running { background:#2b3d6e; color:#9cb5ff; }
+.status.done { background:#1e4a3a; color:#9ce5c1; }
+.status.error { background:#5e2b2b; color:#ffa1a1; }
+.status.cancelled { background:#3a3a3a; color:#999; }
+.bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.bar > div { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.3s; }
+.job-meta { display:flex; gap:12px; font-size:11px; color:var(--muted); margin-top:6px; }
+.empty { color:var(--muted); text-align:center; padding:30px 10px; font-size:13px; }
+.crumbs { padding:6px 12px; font-size:12px; }
+.crumbs a { color:var(--accent-2); text-decoration:none; cursor:pointer; }
+.crumbs a:hover { text-decoration:underline; }
+.tabs { display:flex; gap:4px; margin-bottom:14px; }
+.tab { padding:7px 14px; background:var(--panel-2); border:1px solid var(--border); color:var(--muted); cursor:pointer; border-radius:6px; font-size:13px; }
+.tab.active { color:var(--text); background:var(--panel); border-color:var(--accent); }
+.sizes { font-size:11px; color:var(--muted); }
+.shrink { color:var(--good); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MKV<span>Forge</span></h1>
+  <div style="font-size:12px;color:var(--muted)" id="health"></div>
+</header>
+<main>
+  <div class="sidebar">
+    <div class="path-bar">
+      <div class="crumbs" id="crumbs"></div>
+    </div>
+    <ul class="file-list" id="files"></ul>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <div class="tab active" data-tab="convert">Convert</div>
+      <div class="tab" data-tab="jobs">Jobs</div>
+    </div>
+
+    <div id="tab-convert">
+      <div class="panel" id="selectedPanel">
+        <h2>No file selected</h2>
+        <div class="empty">Pick an MKV/MP4 from the left to inspect tracks.</div>
+      </div>
+    </div>
+
+    <div id="tab-jobs" style="display:none">
+      <div class="panel">
+        <h2>Conversion Jobs</h2>
+        <div id="jobs"><div class="empty">No jobs yet.</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+const state = { cwd: '', selected: null, probe: null, jobs: [] };
+
+function fmtBytes(n) {
+  if (!n) return '-';
+  const u = ['B','KB','MB','GB','TB']; let i = 0;
+  while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
+  return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2) + ' ' + u[i];
+}
+function fmtDur(s) {
+  if (!s) return '-';
+  s = Math.floor(s);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+async function browse(p) {
+  const r = await fetch('/api/browse?path=' + encodeURIComponent(p || ''));
+  const data = await r.json();
+  if (data.error) { alert(data.error); return; }
+  state.cwd = data.cwd;
+  renderFiles(data.items);
+  renderCrumbs();
+}
+
+function renderCrumbs() {
+  const parts = state.cwd ? state.cwd.split('/') : [];
+  const el = document.getElementById('crumbs');
+  let html = `<a data-path="">📁 /media</a>`;
+  let cum = '';
+  for (const p of parts) {
+    cum = cum ? cum + '/' + p : p;
+    html += ` / <a data-path="${cum}">${p}</a>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('a').forEach(a => a.onclick = () => browse(a.dataset.path));
+}
+
+function renderFiles(items) {
+  const ul = document.getElementById('files');
+  ul.innerHTML = '';
+  if (state.cwd) {
+    const parent = state.cwd.split('/').slice(0, -1).join('/');
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="name"><span class="icon">⬆️</span>..</span>`;
+    li.onclick = () => browse(parent);
+    ul.appendChild(li);
+  }
+  for (const it of items) {
+    const li = document.createElement('li');
+    const icon = it.dir ? '📁' : (it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/) ? '🎬' : '📄');
+    li.innerHTML = `<span class="name"><span class="icon">${icon}</span>${it.name}</span><span class="size">${it.dir ? '' : fmtBytes(it.size)}</span>`;
+    li.onclick = () => {
+      if (it.dir) browse(it.path);
+      else selectFile(it);
+    };
+    ul.appendChild(li);
+  }
+}
+
+async function selectFile(file) {
+  state.selected = file;
+  document.querySelectorAll('.file-list li').forEach(l => l.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  const panel = document.getElementById('selectedPanel');
+  panel.innerHTML = `<h2>${file.name}</h2><div class="empty">Probing tracks...</div>`;
+  const r = await fetch('/api/probe?path=' + encodeURIComponent(file.path));
+  const data = await r.json();
+  if (data.error) { panel.innerHTML = `<h2>${file.name}</h2><div class="empty" style="color:var(--err)">${data.error}</div>`; return; }
+  state.probe = data;
+  renderProbe(file, data);
+}
+
+function renderProbe(file, data) {
+  const panel = document.getElementById('selectedPanel');
+  const subs = data.streams.filter(s => s.codec_type === 'subtitle');
+  panel.innerHTML = `
+    <h2>${file.name}</h2>
+    <div class="sizes">
+      ${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · ${data.format.format_name || ''}
+    </div>
+    <div style="margin:14px 0 8px;font-size:13px;color:var(--muted)">Tracks (check to keep)</div>
+    <div id="tracks"></div>
+    <div style="margin-top:18px" class="grid">
+      <label class="field">Quality (CRF) <input type="number" id="crf" value="20" min="14" max="30" step="1"></label>
+      <label class="field">Preset
+        <select id="preset">
+          <option>ultrafast</option><option>superfast</option><option>veryfast</option>
+          <option>faster</option><option>fast</option><option>medium</option>
+          <option selected>slow</option><option>slower</option><option>veryslow</option>
+        </select>
+      </label>
+      <label class="field">Audio
+        <select id="audioMode">
+          <option value="auto" selected>Auto (AAC re-encode)</option>
+          <option value="copy">Copy (keep codec)</option>
+          <option value="aac">Force AAC</option>
+        </select>
+      </label>
+      <label class="field">Audio bitrate
+        <select id="audioBitrate">
+          <option>128k</option><option selected>192k</option><option>256k</option><option>384k</option>
+        </select>
+      </label>
+      <label class="field">Subtitles
+        <select id="subtitleMode">
+          <option value="soft" selected>Soft (embedded mov_text)</option>
+          <option value="burn">Burn-in to video</option>
+          <option value="none">Drop</option>
+        </select>
+      </label>
+      <label class="field">Max height (downscale)
+        <select id="maxHeight">
+          <option value="">Keep original</option>
+          <option value="2160">2160p (4K)</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+        </select>
+      </label>
+      <label class="field" style="grid-column:span 2">Output filename
+        <input type="text" id="outputName" value="${file.name.replace(/\.[^.]+$/, '')}.mp4">
+      </label>
+    </div>
+    <div id="burnPick" style="display:none;margin-top:10px"></div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button id="convertBtn">Start Conversion</button>
+      <button class="ghost" id="refreshBtn">Re-probe</button>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+      Tip: CRF 18–20 is visually lossless for most content. CRF 23 is YouTube-quality. Lower = bigger file. Slower preset = smaller file at same quality.
+    </div>
+  `;
+  const tracksEl = document.getElementById('tracks');
+  for (const s of data.streams) {
+    const type = ['video','audio','subtitle'].includes(s.codec_type) ? s.codec_type : 'other';
+    const badge = `<span class="badge ${type}">${type}</span>`;
+    let info = `<strong>${s.codec_name || '?'}</strong>`;
+    if (s.codec_type === 'video' && s.width) info += ` · ${s.width}×${s.height}`;
+    if (s.codec_type === 'audio') info += ` · ${s.channels || '?'}ch ${s.channel_layout || ''}`;
+    info += ` · lang: ${s.language}`;
+    if (s.title) info += ` · "${s.title}"`;
+    if (s.default) info += ' · default';
+    if (s.forced) info += ' · forced';
+    // default select: video + default audio + default subtitle (if any)
+    const defaultCheck = s.codec_type === 'video' || (s.codec_type === 'audio' && s.default)
+      || (s.codec_type === 'audio' && s.language === 'eng') || (s.codec_type === 'subtitle' && s.default);
+    const id = 'trk_' + s.index;
+    const row = document.createElement('div');
+    row.className = 'track';
+    row.innerHTML = `<input type="checkbox" id="${id}" data-idx="${s.index}" data-type="${s.codec_type}" ${defaultCheck ? 'checked' : ''}>
+                     ${badge}<span class="meta">#${s.index} ${info}</span>`;
+    tracksEl.appendChild(row);
+  }
+  // burn-in sub picker
+  const subSel = document.getElementById('subtitleMode');
+  subSel.onchange = () => {
+    const pick = document.getElementById('burnPick');
+    if (subSel.value === 'burn' && subs.length) {
+      pick.style.display = 'block';
+      pick.innerHTML = `<label class="field">Subtitle track to burn <select id="burnSubIndex">` +
+        subs.map(s => `<option value="${s.index}">#${s.index} ${s.codec_name} (${s.language})${s.title ? ' — ' + s.title : ''}</option>`).join('') +
+        `</select></label>`;
+    } else pick.style.display = 'none';
+  };
+  document.getElementById('refreshBtn').onclick = () => selectFileRefresh(file);
+  document.getElementById('convertBtn').onclick = () => startConvert(file);
+}
+
+function selectFileRefresh(file) {
+  fetch('/api/probe?path=' + encodeURIComponent(file.path)).then(r => r.json()).then(d => {
+    if (!d.error) renderProbe(file, d);
+  });
+}
+
+async function startConvert(file) {
+  const checks = [...document.querySelectorAll('#tracks input[type=checkbox]')];
+  const selected = checks.filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
+  if (!selected.length) { alert('Select at least one track.'); return; }
+  const hasVideo = checks.some(c => c.checked && c.dataset.type === 'video');
+  if (!hasVideo) { alert('At least one video track must be selected.'); return; }
+  const body = {
+    inputPath: file.path,
+    selectedStreams: selected,
+    crf: parseInt(document.getElementById('crf').value, 10),
+    preset: document.getElementById('preset').value,
+    audioMode: document.getElementById('audioMode').value,
+    audioBitrate: document.getElementById('audioBitrate').value,
+    subtitleMode: document.getElementById('subtitleMode').value,
+    maxHeight: document.getElementById('maxHeight').value || null,
+    outputName: document.getElementById('outputName').value
+  };
+  const burn = document.getElementById('burnSubIndex');
+  if (body.subtitleMode === 'burn' && burn) body.burnSubIndex = parseInt(burn.value, 10);
+  const r = await fetch('/api/convert', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  if (d.error) { alert(d.error); return; }
+  showTab('jobs');
+  loadJobs();
+}
+
+function renderJobs() {
+  const el = document.getElementById('jobs');
+  if (!state.jobs.length) { el.innerHTML = '<div class="empty">No jobs yet.</div>'; return; }
+  el.innerHTML = state.jobs.map(j => {
+    const shrink = j.outputSize && j.inputSize ? ` · <span class="shrink">-${Math.round((1 - j.outputSize/j.inputSize)*100)}%</span>` : '';
+    const sizes = j.outputSize ? `${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)}${shrink}` : fmtBytes(j.inputSize);
+    return `<div class="job">
+      <div class="job-head">
+        <div class="job-name">${j.input.split('/').pop()}</div>
+        <span class="status ${j.status}">${j.status}</span>
+      </div>
+      <div class="bar"><div style="width:${j.progress||0}%"></div></div>
+      <div class="job-meta">
+        <span>${(j.progress||0).toFixed(1)}%</span>
+        ${j.speed ? `<span>${j.speed}x</span>` : ''}
+        ${j.fps ? `<span>${j.fps} fps</span>` : ''}
+        ${j.eta ? `<span>ETA ${fmtDur(j.eta)}</span>` : ''}
+        <span>${sizes}</span>
+        ${j.error ? `<span style="color:var(--err)">${j.error}</span>` : ''}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        ${j.status === 'running' || j.status === 'queued' ? `<button class="ghost" onclick="cancelJob('${j.id}')">Cancel</button>` : ''}
+        ${j.status !== 'running' ? `<button class="ghost" onclick="removeJob('${j.id}')">Remove</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadJobs() {
+  const r = await fetch('/api/jobs'); state.jobs = await r.json(); renderJobs();
+}
+async function cancelJob(id) { await fetch('/api/jobs/' + id + '/cancel', {method:'POST'}); loadJobs(); }
+async function removeJob(id) { await fetch('/api/jobs/' + id, {method:'DELETE'}); loadJobs(); }
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.getElementById('tab-convert').style.display = name === 'convert' ? '' : 'none';
+  document.getElementById('tab-jobs').style.display = name === 'jobs' ? '' : 'none';
+  if (name === 'jobs') loadJobs();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+
+// WebSocket for live progress
+const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+const ws = new WebSocket(`${proto}://${location.host}/ws`);
+ws.onmessage = ev => {
+  const msg = JSON.parse(ev.data);
+  if (msg.type === 'hello') state.jobs = msg.jobs;
+  if (msg.type === 'job') {
+    const i = state.jobs.findIndex(j => j.id === msg.job.id);
+    if (i >= 0) state.jobs[i] = msg.job; else state.jobs.unshift(msg.job);
+  }
+  if (msg.type === 'progress') {
+    const j = state.jobs.find(x => x.id === msg.id);
+    if (j) Object.assign(j, msg);
+  }
+  if (msg.type === 'removed') state.jobs = state.jobs.filter(j => j.id !== msg.id);
+  renderJobs();
+};
+
+fetch('/api/health').then(r => r.json()).then(h => {
+  document.getElementById('health').textContent = `${h.mediaRoot} → ${h.outputDir}`;
+});
+browse('');
+</script>
+</body>
+</html>

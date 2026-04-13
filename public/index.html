@@ -23,28 +23,36 @@ body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Rob
 header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel); }
 header h1 { font-size:18px; margin:0; letter-spacing:0.3px; }
 header h1 span { color:var(--accent-2); }
-main { display:grid; grid-template-columns: 360px 1fr; gap:0; height: calc(100vh - 53px); }
-.sidebar { border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; }
+main { display:grid; grid-template-columns: 380px 1fr; gap:0; height: calc(100vh - 53px); }
+.sidebar { border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; display:flex; flex-direction:column; }
+.sidebar-actions { padding:8px 10px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-wrap:wrap; position:sticky; top:0; background:var(--panel); z-index:5; }
+.sidebar-actions .count { font-size:11px; color:var(--muted); margin-left:auto; }
 .content { overflow-y:auto; padding:20px; }
 .panel { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; }
 .panel h2 { margin:0 0 12px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; }
 .path-bar { padding:10px 12px; background:var(--panel-2); border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); word-break:break-all; }
 .file-list { list-style:none; margin:0; padding:0; }
-.file-list li { padding:8px 12px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; justify-content:space-between; gap:8px; font-size:13px; }
+.file-list li { padding:6px 10px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; align-items:center; gap:8px; font-size:13px; }
 .file-list li:hover { background:var(--panel-2); }
 .file-list li.selected { background:#243049; }
-.file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-list li.queued { background:#1e2a1e; }
+.file-list li.selected.queued { background:#2a3a3a; }
+.file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 .file-list .size { color:var(--muted); font-size:11px; flex-shrink:0; }
-.file-list .icon { margin-right:6px; }
+.file-list .icon { margin-right:4px; }
+.file-list .qbox { width:15px; height:15px; accent-color:var(--good); flex-shrink:0; cursor:pointer; }
+.file-list .qbox-placeholder { width:15px; flex-shrink:0; }
 button { background:var(--accent); color:white; border:none; padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:500; }
 button:hover { background:var(--accent-2); }
 button:disabled { opacity:0.5; cursor:not-allowed; }
 button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
 button.ghost:hover { background:var(--panel-2); }
+button.small { padding:5px 9px; font-size:11px; }
 button.danger { background:var(--err); }
+button.success { background:var(--good); color:#0a2a1a; }
 .track { display:flex; align-items:center; gap:10px; padding:8px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; }
 .track input[type=checkbox] { width:16px; height:16px; accent-color:var(--accent); }
-.track .badge { padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; }
+.track .badge { padding:2px 7px; border-radius:4px; font-size:11px; font-weight:600; flex-shrink:0; }
 .badge.video { background:#3a2b5e; color:#c9b1ff; }
 .badge.audio { background:#1e4a3a; color:#9ce5c1; }
 .badge.subtitle { background:#5e3a2b; color:#ffc9a1; }
@@ -54,6 +62,7 @@ button.danger { background:var(--err); }
 .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
 label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
 label.field input, label.field select { padding:7px 9px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:5px; font-size:13px; }
+.field-hint { font-size:10px; color:var(--accent-2); font-weight:500; margin-top:2px; }
 .job { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:10px; }
 .job-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
 .job-name { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -87,6 +96,10 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 .estimate-value { font-weight:600; font-size:14px; }
 .estimate-note { color:var(--muted); font-size:11px; margin-top:8px; padding-top:8px; border-top:1px solid #2d4066; }
 .advice { color:var(--warn); font-size:12px; margin-top:8px; display:flex; gap:6px; align-items:flex-start; }
+.queue-file { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; }
+.queue-file .x { color:var(--err); cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
+.queue-file .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rec-badge { display:inline-block; padding:1px 6px; background:var(--panel); border:1px solid var(--accent); color:var(--accent-2); border-radius:3px; font-size:10px; font-weight:600; margin-left:6px; }
 </style>
 </head>
 <body>
@@ -96,6 +109,12 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 </header>
 <main>
   <div class="sidebar">
+    <div class="sidebar-actions">
+      <button class="small" id="selectAllBtn">Select all in folder</button>
+      <button class="small ghost" id="clearQueueBtn">Clear</button>
+      <button class="small success" id="batchBtn" style="display:none">Batch → <span id="batchCount">0</span></button>
+      <span class="count" id="queueCount"></span>
+    </div>
     <div class="path-bar">
       <div class="crumbs" id="crumbs"></div>
     </div>
@@ -104,13 +123,21 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
   <div class="content">
     <div class="tabs">
       <div class="tab active" data-tab="convert">Convert</div>
+      <div class="tab" data-tab="batch">Batch <span id="batchTabCount" style="color:var(--muted);margin-left:4px"></span></div>
       <div class="tab" data-tab="jobs">Jobs</div>
     </div>
 
     <div id="tab-convert">
       <div class="panel" id="selectedPanel">
         <h2>No file selected</h2>
-        <div class="empty">Pick an MKV/MP4 from the left to inspect tracks.</div>
+        <div class="empty">Click a filename to inspect tracks. Use the green checkboxes to queue multiple files for batch conversion.</div>
+      </div>
+    </div>
+
+    <div id="tab-batch" style="display:none">
+      <div class="panel">
+        <h2>Batch Convert</h2>
+        <div id="batchContent"></div>
       </div>
     </div>
 
@@ -123,7 +150,14 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
   </div>
 </main>
 <script>
-const state = { cwd: '', selected: null, probe: null, jobs: [] };
+const state = {
+  cwd: '',
+  selected: null,
+  probe: null,
+  jobs: [],
+  queue: new Map(), // path -> {name, size}
+  currentFiles: []
+};
 
 function fmtBytes(n) {
   if (!n) return '-';
@@ -138,9 +172,28 @@ function fmtDur(s) {
   return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
 }
 
+// ---- Audio bitrate recommendation ----
+// AAC needs ~64 kbps per channel for transparent quality. Cap at reasonable values.
+function recommendAudioBitrate(channels) {
+  if (!channels) return 192;
+  if (channels <= 1) return 96;
+  if (channels === 2) return 192;
+  if (channels <= 6) return 384; // 5.1
+  return 512; // 7.1 and up
+}
+
+// Closest option in the bitrate dropdown
+function snapAudioBitrate(kbps) {
+  const options = [128, 192, 256, 384];
+  let best = options[0], bestDiff = Infinity;
+  for (const o of options) {
+    const d = Math.abs(o - kbps);
+    if (d < bestDiff) { bestDiff = d; best = o; }
+  }
+  return best;
+}
+
 // ---- Size estimation ----
-// Approximate x264 bitrate curve (kbps) at 1080p, slow preset, live-action.
-// Animation/flat content will come out smaller; heavy grain will come out larger.
 function estimateVideoBitrateKbps(crf, width, height, sourceCodec) {
   const ref1080 = {
     14: 18000, 16: 13000, 18: 9000, 19: 7500,
@@ -152,14 +205,9 @@ function estimateVideoBitrateKbps(crf, width, height, sourceCodec) {
   const lo = Math.floor(crfClamped), hi = Math.ceil(crfClamped);
   const frac = crfClamped - lo;
   const base = ref1080[lo] * (1 - frac) + ref1080[hi] * frac;
-
   const pixels = (width || 1920) * (height || 1080);
-  const refPixels = 1920 * 1080;
-  let scaled = base * (pixels / refPixels);
-
-  // HEVC sources tend to preserve more grain/detail, so x264 needs slightly more bits
+  let scaled = base * (pixels / (1920*1080));
   if (sourceCodec === 'hevc' || sourceCodec === 'h265') scaled *= 1.1;
-
   return scaled;
 }
 
@@ -170,7 +218,6 @@ function estimateOutputSize() {
   if (!keptVideo) return null;
   const vStream = state.probe.streams.find(s => s.index === parseInt(keptVideo.dataset.idx, 10));
   if (!vStream) return null;
-
   const duration = state.probe.format.duration || 0;
   if (!duration) return null;
 
@@ -178,13 +225,9 @@ function estimateOutputSize() {
   const maxH = document.getElementById('maxHeight').value;
   let width = vStream.width || 1920, height = vStream.height || 1080;
   if (maxH) {
-    const target = parseInt(maxH, 10);
-    if (height > target) {
-      width = Math.round(width * (target / height));
-      height = target;
-    }
+    const t = parseInt(maxH, 10);
+    if (height > t) { width = Math.round(width * (t/height)); height = t; }
   }
-
   const videoKbps = estimateVideoBitrateKbps(crf, width, height, vStream.codec_name);
 
   const audioMode = document.getElementById('audioMode').value;
@@ -193,16 +236,11 @@ function estimateOutputSize() {
   const keptAudio = checks.filter(c => c.checked && c.dataset.type === 'audio');
   for (const c of keptAudio) {
     const s = state.probe.streams.find(st => st.index === parseInt(c.dataset.idx, 10));
-    if (audioMode === 'copy' && s && s.bit_rate) {
-      audioKbps += parseInt(s.bit_rate, 10) / 1000;
-    } else {
-      audioKbps += audioBitrateVal;
-    }
+    if (audioMode === 'copy' && s && s.bit_rate) audioKbps += parseInt(s.bit_rate, 10) / 1000;
+    else audioKbps += audioBitrateVal;
   }
-
-  const totalKbps = videoKbps + audioKbps;
-  const bytes = (totalKbps * 1000 / 8) * duration;
-  return { bytes, videoKbps: Math.round(videoKbps), audioKbps: Math.round(audioKbps), width, height };
+  const bytes = ((videoKbps + audioKbps) * 1000 / 8) * duration;
+  return { bytes, videoKbps: Math.round(videoKbps), audioKbps: Math.round(audioKbps) };
 }
 
 function updateEstimate() {
@@ -212,66 +250,43 @@ function updateEstimate() {
   if (!est) { el.style.display = 'none'; return; }
   el.style.display = 'block';
   const inputSize = state.probe.format.size;
-  const delta = inputSize ? ((1 - est.bytes / inputSize) * 100) : 0;
-  const deltaClass = delta >= 5 ? 'shrink' : (delta <= -5 ? 'grow' : '');
-  const deltaText = delta >= 0 ? `-${delta.toFixed(0)}%` : `+${Math.abs(delta).toFixed(0)}%`;
+  const delta = inputSize ? ((1 - est.bytes/inputSize) * 100) : 0;
+  const dCls = delta >= 5 ? 'shrink' : (delta <= -5 ? 'grow' : '');
+  const dTxt = delta >= 0 ? `-${delta.toFixed(0)}%` : `+${Math.abs(delta).toFixed(0)}%`;
 
   let advice = '';
-  if (delta < 0) {
-    advice = `<div class="advice">⚠️ Output will be <b>larger</b> than the source. Increase CRF (23–26) or downscale resolution to actually shrink the file.</div>`;
-  } else if (delta < 10) {
-    advice = `<div class="advice">⚠️ Only minor savings expected. Try CRF 23+ or the "Shrink hard" preset for meaningful compression.</div>`;
-  }
+  if (delta < 0) advice = `<div class="advice">⚠️ Output will be <b>larger</b> than source. Raise CRF (23–26) or downscale.</div>`;
+  else if (delta < 10) advice = `<div class="advice">⚠️ Only minor savings. Try CRF 23+ or "Shrink hard".</div>`;
 
   el.innerHTML = `
-    <div class="estimate-row">
-      <span class="estimate-label">Estimated output size</span>
-      <span class="estimate-value">${fmtBytes(est.bytes)} <span class="${deltaClass}" style="font-size:12px;margin-left:6px">${deltaText}</span></span>
-    </div>
-    <div class="estimate-row">
-      <span class="estimate-label">Source size</span>
-      <span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(inputSize)}</span>
-    </div>
-    <div class="estimate-row">
-      <span class="estimate-label">Target bitrate</span>
-      <span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps video + ${est.audioKbps} kbps audio</span>
-    </div>
-    <div class="estimate-note">Estimate based on typical x264 CRF behavior. Real output can vary ±30% depending on content (animation shrinks more, heavy grain/noise less).</div>
+    <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
+      <span class="estimate-value">${fmtBytes(est.bytes)} <span class="${dCls}" style="font-size:12px;margin-left:6px">${dTxt}</span></span></div>
+    <div class="estimate-row"><span class="estimate-label">Source size</span>
+      <span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(inputSize)}</span></div>
+    <div class="estimate-row"><span class="estimate-label">Target bitrate</span>
+      <span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps video + ${est.audioKbps} kbps audio</span></div>
+    <div class="estimate-note">Estimate based on typical x264 CRF behavior. Real output can vary ±30% depending on content.</div>
     ${advice}
   `;
 }
 
-// ---- Recommended presets ----
 function getRecommendations(probe) {
   if (!probe) return [];
   const v = probe.streams.find(s => s.codec_type === 'video');
   const srcCodec = v ? v.codec_name : 'h264';
   const srcH = v ? v.height : 1080;
   const isHEVC = srcCodec === 'hevc' || srcCodec === 'h265';
-
   const recs = [];
-
   if (isHEVC) {
-    recs.push({ id: 'archival', name: 'Archival quality', desc: 'Near-lossless. File may grow vs HEVC source.',
-      crf: 20, preset: 'slow', maxHeight: '' });
-    recs.push({ id: 'balanced', name: 'Balanced', desc: 'Good quality, roughly matches source size.',
-      crf: 23, preset: 'slow', maxHeight: '' });
-    recs.push({ id: 'shrink', name: 'Shrink hard', desc: '~40–50% smaller, streaming quality.',
-      crf: 25, preset: 'slow', maxHeight: '' });
+    recs.push({ id:'archival', name:'Archival quality', desc:'Near-lossless.', crf:20, preset:'slow', maxHeight:'' });
+    recs.push({ id:'balanced', name:'Balanced', desc:'Good quality, matches source size.', crf:23, preset:'slow', maxHeight:'' });
+    recs.push({ id:'shrink', name:'Shrink hard', desc:'~40–50% smaller.', crf:25, preset:'slow', maxHeight:'' });
   } else {
-    recs.push({ id: 'light', name: 'Light compression', desc: 'Small savings, visually lossless.',
-      crf: 22, preset: 'slow', maxHeight: '' });
-    recs.push({ id: 'balanced', name: 'Balanced', desc: '~30–40% smaller, excellent quality.',
-      crf: 24, preset: 'slow', maxHeight: '' });
-    recs.push({ id: 'shrink', name: 'Shrink hard', desc: '~50–60% smaller, streaming quality.',
-      crf: 26, preset: 'slow', maxHeight: '' });
+    recs.push({ id:'light', name:'Light compression', desc:'Small savings, lossless.', crf:22, preset:'slow', maxHeight:'' });
+    recs.push({ id:'balanced', name:'Balanced', desc:'~30–40% smaller.', crf:24, preset:'slow', maxHeight:'' });
+    recs.push({ id:'shrink', name:'Shrink hard', desc:'~50–60% smaller.', crf:26, preset:'slow', maxHeight:'' });
   }
-
-  if (srcH && srcH > 1440) {
-    recs.push({ id: 'downscale', name: '1080p downscale', desc: 'Big size cut, great for streaming.',
-      crf: 23, preset: 'slow', maxHeight: '1080' });
-  }
-
+  if (srcH && srcH > 1440) recs.push({ id:'downscale', name:'1080p downscale', desc:'Big size cut.', crf:23, preset:'slow', maxHeight:'1080' });
   return recs;
 }
 
@@ -288,6 +303,7 @@ async function browse(p) {
   const data = await r.json();
   if (data.error) { alert(data.error); return; }
   state.cwd = data.cwd;
+  state.currentFiles = data.items.filter(i => !i.dir && i.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/));
   renderFiles(data.items);
   renderCrumbs();
 }
@@ -311,26 +327,77 @@ function renderFiles(items) {
   if (state.cwd) {
     const parent = state.cwd.split('/').slice(0, -1).join('/');
     const li = document.createElement('li');
-    li.innerHTML = `<span class="name"><span class="icon">⬆️</span>..</span>`;
+    li.innerHTML = `<span class="qbox-placeholder"></span><span class="name"><span class="icon">⬆️</span>..</span>`;
     li.onclick = () => browse(parent);
     ul.appendChild(li);
   }
   for (const it of items) {
     const li = document.createElement('li');
     const icon = it.dir ? '📁' : (it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/) ? '🎬' : '📄');
-    li.innerHTML = `<span class="name"><span class="icon">${icon}</span>${it.name}</span><span class="size">${it.dir ? '' : fmtBytes(it.size)}</span>`;
-    li.onclick = (ev) => {
+    const isMedia = !it.dir && it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/);
+    const isQueued = state.queue.has(it.path);
+    if (isQueued) li.classList.add('queued');
+
+    const cbHTML = isMedia
+      ? `<input type="checkbox" class="qbox" data-path="${it.path}" data-name="${it.name}" data-size="${it.size}" ${isQueued ? 'checked' : ''}>`
+      : `<span class="qbox-placeholder"></span>`;
+
+    li.innerHTML = `${cbHTML}<span class="name"><span class="icon">${icon}</span>${it.name}</span><span class="size">${it.dir ? '' : fmtBytes(it.size)}</span>`;
+
+    const nameEl = li.querySelector('.name');
+    nameEl.onclick = (ev) => {
+      ev.stopPropagation();
       if (it.dir) browse(it.path);
       else selectFile(it, ev);
     };
+    li.onclick = (ev) => {
+      if (ev.target.classList.contains('qbox')) return;
+      if (it.dir) browse(it.path);
+      else selectFile(it, ev);
+    };
+    const cb = li.querySelector('.qbox');
+    if (cb) {
+      cb.onclick = (ev) => {
+        ev.stopPropagation();
+        if (cb.checked) state.queue.set(it.path, { name: it.name, size: it.size });
+        else state.queue.delete(it.path);
+        li.classList.toggle('queued', cb.checked);
+        updateQueueUI();
+      };
+    }
     ul.appendChild(li);
   }
 }
 
+function updateQueueUI() {
+  const n = state.queue.size;
+  document.getElementById('batchBtn').style.display = n > 0 ? '' : 'none';
+  document.getElementById('batchCount').textContent = n;
+  document.getElementById('queueCount').textContent = n ? `${n} queued` : '';
+  document.getElementById('batchTabCount').textContent = n ? `(${n})` : '';
+  if (document.getElementById('tab-batch').style.display !== 'none') renderBatch();
+}
+
+document.getElementById('selectAllBtn').onclick = () => {
+  for (const f of state.currentFiles) state.queue.set(f.path, { name: f.name, size: f.size });
+  renderFiles(state.currentFiles.length === document.querySelectorAll('#files li').length ? state.currentFiles : [...document.querySelectorAll('#files li')].map(() => null).filter(Boolean));
+  // Simple: just re-browse to re-render with correct state
+  browse(state.cwd);
+  updateQueueUI();
+};
+document.getElementById('clearQueueBtn').onclick = () => {
+  state.queue.clear();
+  browse(state.cwd);
+  updateQueueUI();
+};
+document.getElementById('batchBtn').onclick = () => showTab('batch');
+
 async function selectFile(file, ev) {
   state.selected = file;
   document.querySelectorAll('.file-list li').forEach(l => l.classList.remove('selected'));
-  if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
+  const li = ev && ev.currentTarget && ev.currentTarget.tagName === 'LI' ? ev.currentTarget : (ev && ev.target.closest && ev.target.closest('li'));
+  if (li) li.classList.add('selected');
+  showTab('convert');
   const panel = document.getElementById('selectedPanel');
   panel.innerHTML = `<h2>${file.name}</h2><div class="empty">Probing tracks...</div>`;
   const r = await fetch('/api/probe?path=' + encodeURIComponent(file.path));
@@ -347,11 +414,28 @@ function renderProbe(file, data) {
   const srcCodec = videoStream ? videoStream.codec_name : 'unknown';
   const recs = getRecommendations(data);
 
+  // Audio bitrate recommendation: based on highest-channel audio track
+  const audioStreams = data.streams.filter(s => s.codec_type === 'audio');
+  const maxCh = audioStreams.reduce((m, s) => Math.max(m, s.channels || 0), 0);
+  const recAudioKbps = recommendAudioBitrate(maxCh);
+  const recAudioSnapped = snapAudioBitrate(recAudioKbps);
+
+  // Show source audio bitrates summary
+  let audioSummary = '';
+  if (audioStreams.length) {
+    const parts = audioStreams.map(s => {
+      const br = s.bit_rate ? Math.round(s.bit_rate/1000) + ' kbps' : '?';
+      return `${s.codec_name}/${s.channels || '?'}ch (${br})`;
+    });
+    audioSummary = `Source audio: ${parts.join(', ')}`;
+  }
+
   panel.innerHTML = `
     <h2>${file.name}</h2>
     <div class="sizes">
       ${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · source codec: <b style="color:var(--text)">${srcCodec}</b>${videoStream && videoStream.width ? ` · ${videoStream.width}×${videoStream.height}` : ''}
     </div>
+    ${audioSummary ? `<div class="sizes" style="margin-top:4px">${audioSummary}</div>` : ''}
 
     <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Recommended settings</div>
     <div class="presets" id="presets">
@@ -379,8 +463,12 @@ function renderProbe(file, data) {
       </label>
       <label class="field">Audio bitrate
         <select id="audioBitrate">
-          <option>128k</option><option selected>192k</option><option>256k</option><option>384k</option>
+          <option value="128">128k</option>
+          <option value="192">192k</option>
+          <option value="256">256k</option>
+          <option value="384">384k</option>
         </select>
+        <span class="field-hint">Recommended: <b>${recAudioSnapped}k</b> (${maxCh || '?'}-channel source)</span>
       </label>
       <label class="field">Subtitles
         <select id="subtitleMode">
@@ -404,7 +492,6 @@ function renderProbe(file, data) {
     </div>
 
     <div id="burnPick" style="display:none;margin-top:10px"></div>
-
     <div class="estimate" id="estimate" style="display:none"></div>
 
     <div style="margin-top:16px;display:flex;gap:8px">
@@ -412,9 +499,12 @@ function renderProbe(file, data) {
       <button class="ghost" id="refreshBtn">Re-probe</button>
     </div>
     <div style="margin-top:10px;font-size:11px;color:var(--muted)">
-      Tip: CRF 18–20 is visually lossless. CRF 23–25 is streaming-quality at about half the size. Slower preset = smaller file at same quality.
+      Tip: CRF 18–20 is visually lossless. CRF 23–25 is streaming-quality at about half the size.
     </div>
   `;
+
+  // Set recommended audio bitrate as the default
+  document.getElementById('audioBitrate').value = String(recAudioSnapped);
 
   const tracksEl = document.getElementById('tracks');
   for (const s of data.streams) {
@@ -422,35 +512,31 @@ function renderProbe(file, data) {
     const badge = `<span class="badge ${type}">${type}</span>`;
     let info = `<strong>${s.codec_name || '?'}</strong>`;
     if (s.codec_type === 'video' && s.width) info += ` · ${s.width}×${s.height}`;
-    if (s.codec_type === 'audio') info += ` · ${s.channels || '?'}ch ${s.channel_layout || ''}`;
-    if (s.bit_rate) info += ` · ${Math.round(s.bit_rate/1000)} kbps`;
+    if (s.codec_type === 'audio') {
+      info += ` · ${s.channels || '?'}ch ${s.channel_layout || ''}`;
+      if (s.bit_rate) info += ` · <b style="color:var(--text)">${Math.round(s.bit_rate/1000)} kbps</b>`;
+      const rec = snapAudioBitrate(recommendAudioBitrate(s.channels));
+      info += ` <span class="rec-badge">rec ${rec}k</span>`;
+    }
     info += ` · lang: ${s.language}`;
     if (s.title) info += ` · "${s.title}"`;
     if (s.default) info += ' · default';
     if (s.forced) info += ' · forced';
     const defaultCheck = s.codec_type === 'video' || (s.codec_type === 'audio' && s.default)
       || (s.codec_type === 'audio' && s.language === 'eng') || (s.codec_type === 'subtitle' && s.default);
-    const id = 'trk_' + s.index;
     const row = document.createElement('div');
     row.className = 'track';
-    row.innerHTML = `<input type="checkbox" id="${id}" data-idx="${s.index}" data-type="${s.codec_type}" ${defaultCheck ? 'checked' : ''}>
+    row.innerHTML = `<input type="checkbox" data-idx="${s.index}" data-type="${s.codec_type}" ${defaultCheck ? 'checked' : ''}>
                      ${badge}<span class="meta">#${s.index} ${info}</span>`;
     tracksEl.appendChild(row);
   }
 
-  // Preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.onclick = () => {
-      const r = recs.find(x => x.id === btn.dataset.id);
-      if (r) applyPreset(r);
-    };
+    btn.onclick = () => { const r = recs.find(x => x.id === btn.dataset.id); if (r) applyPreset(r); };
   });
-
-  // Live estimate updates
   ['crf','preset','audioMode','audioBitrate','subtitleMode','maxHeight'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('change', updateEstimate);
-    if (el && el.tagName === 'INPUT') el.addEventListener('input', updateEstimate);
+    if (el) { el.addEventListener('change', updateEstimate); if (el.tagName === 'INPUT') el.addEventListener('input', updateEstimate); }
   });
   document.querySelectorAll('#tracks input[type=checkbox]').forEach(c => c.addEventListener('change', updateEstimate));
 
@@ -469,7 +555,6 @@ function renderProbe(file, data) {
   document.getElementById('refreshBtn').onclick = () => selectFileRefresh(file);
   document.getElementById('convertBtn').onclick = () => startConvert(file);
 
-  // Auto-apply Balanced preset
   const defaultPreset = recs.find(r => r.id === 'balanced') || recs[0];
   if (defaultPreset) applyPreset(defaultPreset);
   else updateEstimate();
@@ -485,28 +570,199 @@ async function startConvert(file) {
   const checks = [...document.querySelectorAll('#tracks input[type=checkbox]')];
   const selected = checks.filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
   if (!selected.length) { alert('Select at least one track.'); return; }
-  const hasVideo = checks.some(c => c.checked && c.dataset.type === 'video');
-  if (!hasVideo) { alert('At least one video track must be selected.'); return; }
+  if (!checks.some(c => c.checked && c.dataset.type === 'video')) { alert('At least one video track must be selected.'); return; }
   const body = {
     inputPath: file.path,
     selectedStreams: selected,
     crf: parseInt(document.getElementById('crf').value, 10),
     preset: document.getElementById('preset').value,
     audioMode: document.getElementById('audioMode').value,
-    audioBitrate: document.getElementById('audioBitrate').value,
+    audioBitrate: document.getElementById('audioBitrate').value + 'k',
     subtitleMode: document.getElementById('subtitleMode').value,
     maxHeight: document.getElementById('maxHeight').value || null,
     outputName: document.getElementById('outputName').value
   };
   const burn = document.getElementById('burnSubIndex');
   if (body.subtitleMode === 'burn' && burn) body.burnSubIndex = parseInt(burn.value, 10);
-  const r = await fetch('/api/convert', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+  const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
   const d = await r.json();
   if (d.error) { alert(d.error); return; }
-  showTab('jobs');
-  loadJobs();
+  showTab('jobs'); loadJobs();
 }
 
+// ---- Batch ----
+function renderBatch() {
+  const el = document.getElementById('batchContent');
+  if (!state.queue.size) {
+    el.innerHTML = `<div class="empty">No files queued. Use the green checkboxes in the file list to add files.</div>`;
+    return;
+  }
+  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
+  const totalSize = files.reduce((s, f) => s + (parseInt(f.size, 10) || 0), 0);
+  el.innerHTML = `
+    <div style="margin-bottom:14px;font-size:13px;color:var(--muted)">
+      ${files.length} file${files.length > 1 ? 's' : ''} queued · ${fmtBytes(totalSize)} total
+    </div>
+    <div id="queueList" style="margin-bottom:18px;max-height:300px;overflow-y:auto"></div>
+
+    <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Shared encode settings</div>
+    <div class="presets">
+      <button class="preset-btn" data-batch-preset="light"><b>Light</b> · CRF 22</button>
+      <button class="preset-btn active" data-batch-preset="balanced"><b>Balanced</b> · CRF 24</button>
+      <button class="preset-btn" data-batch-preset="shrink"><b>Shrink hard</b> · CRF 26</button>
+      <button class="preset-btn" data-batch-preset="hevc-shrink"><b>HEVC→H264 shrink</b> · CRF 25</button>
+    </div>
+
+    <div class="grid">
+      <label class="field">Quality (CRF) <input type="number" id="bCrf" value="24" min="14" max="30"></label>
+      <label class="field">Preset
+        <select id="bPreset">
+          <option>fast</option><option>medium</option><option selected>slow</option><option>slower</option>
+        </select>
+      </label>
+      <label class="field">Audio bitrate
+        <select id="bAudioBitrate">
+          <option value="128">128k</option>
+          <option value="192" selected>192k</option>
+          <option value="256">256k</option>
+          <option value="384">384k</option>
+        </select>
+        <span class="field-hint">Auto-scaled per file based on channel count</span>
+      </label>
+      <label class="field">Max height (downscale)
+        <select id="bMaxHeight">
+          <option value="">Keep original</option>
+          <option value="2160">2160p (4K)</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+        </select>
+      </label>
+      <label class="field">Track selection
+        <select id="bTrackMode">
+          <option value="default" selected>Keep default + English tracks</option>
+          <option value="all">Keep all tracks</option>
+          <option value="video-only">Video + default audio only</option>
+        </select>
+      </label>
+      <label class="field">Subtitles
+        <select id="bSubtitleMode">
+          <option value="soft" selected>Soft (if supported)</option>
+          <option value="none">Drop all</option>
+        </select>
+      </label>
+    </div>
+
+    <div style="margin-top:18px;display:flex;gap:8px">
+      <button id="startBatchBtn" class="success">Start Batch Conversion</button>
+      <button class="ghost" id="clearBatchBtn">Clear queue</button>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+      Each file is probed individually and gets sensible track selection. Jobs run one at a time (as configured by MAX_CONCURRENT).
+    </div>
+  `;
+
+  const ql = document.getElementById('queueList');
+  ql.innerHTML = files.map(f => `
+    <div class="queue-file">
+      <span class="name">${f.name}</span>
+      <span style="color:var(--muted);font-size:11px">${fmtBytes(f.size)}</span>
+      <span class="x" data-path="${f.path}" title="Remove">×</span>
+    </div>
+  `).join('');
+  ql.querySelectorAll('.x').forEach(x => x.onclick = () => { state.queue.delete(x.dataset.path); browse(state.cwd); updateQueueUI(); });
+
+  document.querySelectorAll('[data-batch-preset]').forEach(b => {
+    b.onclick = () => {
+      const id = b.dataset.batchPreset;
+      document.querySelectorAll('[data-batch-preset]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      const map = {
+        light: { crf:22, preset:'slow' },
+        balanced: { crf:24, preset:'slow' },
+        shrink: { crf:26, preset:'slow' },
+        'hevc-shrink': { crf:25, preset:'slow' }
+      };
+      const m = map[id];
+      document.getElementById('bCrf').value = m.crf;
+      document.getElementById('bPreset').value = m.preset;
+    };
+  });
+
+  document.getElementById('clearBatchBtn').onclick = () => { state.queue.clear(); browse(state.cwd); updateQueueUI(); };
+  document.getElementById('startBatchBtn').onclick = startBatch;
+}
+
+async function startBatch() {
+  const btn = document.getElementById('startBatchBtn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  const opts = {
+    crf: parseInt(document.getElementById('bCrf').value, 10),
+    preset: document.getElementById('bPreset').value,
+    audioBitrateBase: parseInt(document.getElementById('bAudioBitrate').value, 10),
+    maxHeight: document.getElementById('bMaxHeight').value || null,
+    trackMode: document.getElementById('bTrackMode').value,
+    subtitleMode: document.getElementById('bSubtitleMode').value
+  };
+
+  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
+  let submitted = 0, failed = 0;
+  for (const f of files) {
+    try {
+      btn.textContent = `Submitting ${submitted+1}/${files.length}...`;
+      // Probe to get track list
+      const pr = await fetch('/api/probe?path=' + encodeURIComponent(f.path));
+      const probe = await pr.json();
+      if (probe.error) { failed++; continue; }
+
+      // Pick streams according to trackMode
+      const selected = [];
+      for (const s of probe.streams) {
+        if (s.codec_type === 'video') { selected.push(s.index); continue; }
+        if (s.codec_type === 'audio') {
+          if (opts.trackMode === 'all') selected.push(s.index);
+          else if (opts.trackMode === 'default' && (s.default || s.language === 'eng' || s.language === 'und')) selected.push(s.index);
+          else if (opts.trackMode === 'video-only' && s.default) selected.push(s.index);
+        }
+        if (s.codec_type === 'subtitle' && opts.subtitleMode === 'soft') {
+          if (opts.trackMode === 'all') selected.push(s.index);
+          else if (opts.trackMode === 'default' && (s.default || s.language === 'eng')) selected.push(s.index);
+        }
+      }
+      // Ensure at least one audio track got picked
+      if (!selected.some(i => probe.streams.find(s => s.index === i && s.codec_type === 'audio'))) {
+        const firstAudio = probe.streams.find(s => s.codec_type === 'audio');
+        if (firstAudio) selected.push(firstAudio.index);
+      }
+
+      // Scale audio bitrate to max channel count among kept audio
+      const keptAudio = probe.streams.filter(s => selected.includes(s.index) && s.codec_type === 'audio');
+      const maxCh = keptAudio.reduce((m, s) => Math.max(m, s.channels || 0), 0);
+      const abKbps = Math.max(opts.audioBitrateBase, snapAudioBitrate(recommendAudioBitrate(maxCh)));
+
+      const body = {
+        inputPath: f.path,
+        selectedStreams: selected,
+        crf: opts.crf,
+        preset: opts.preset,
+        audioMode: 'auto',
+        audioBitrate: abKbps + 'k',
+        subtitleMode: opts.subtitleMode,
+        maxHeight: opts.maxHeight,
+        outputName: f.name.replace(/\.[^.]+$/, '') + '.mp4'
+      };
+      const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (r.ok) submitted++; else failed++;
+    } catch { failed++; }
+  }
+  btn.disabled = false; btn.textContent = 'Start Batch Conversion';
+  alert(`Queued ${submitted} job${submitted !== 1 ? 's' : ''}${failed ? `, ${failed} failed` : ''}.`);
+  state.queue.clear();
+  browse(state.cwd);
+  updateQueueUI();
+  showTab('jobs'); loadJobs();
+}
+
+// ---- Jobs ----
 function renderJobs() {
   const el = document.getElementById('jobs');
   if (!state.jobs.length) { el.innerHTML = '<div class="empty">No jobs yet.</div>'; return; }
@@ -518,11 +774,8 @@ function renderJobs() {
       const cls = pct > 0 ? 'shrink' : 'grow';
       const sign = pct > 0 ? '-' : '+';
       sizeText = `${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;
-    } else if (running) {
-      sizeText = `source: ${fmtBytes(j.inputSize)} (output size known when complete)`;
-    } else {
-      sizeText = fmtBytes(j.inputSize);
-    }
+    } else if (running) sizeText = `source: ${fmtBytes(j.inputSize)} (output size when done)`;
+    else sizeText = fmtBytes(j.inputSize);
     return `<div class="job">
       <div class="job-head">
         <div class="job-name">${j.input.split('/').pop()}</div>
@@ -538,24 +791,24 @@ function renderJobs() {
         ${j.error ? `<span style="color:var(--err)">${j.error}</span>` : ''}
       </div>
       <div style="margin-top:8px;display:flex;gap:6px">
-        ${j.status === 'running' || j.status === 'queued' ? `<button class="ghost" onclick="cancelJob('${j.id}')">Cancel</button>` : ''}
-        ${j.status !== 'running' ? `<button class="ghost" onclick="removeJob('${j.id}')">Remove</button>` : ''}
+        ${j.status === 'running' || j.status === 'queued' ? `<button class="ghost small" onclick="cancelJob('${j.id}')">Cancel</button>` : ''}
+        ${j.status !== 'running' ? `<button class="ghost small" onclick="removeJob('${j.id}')">Remove</button>` : ''}
       </div>
     </div>`;
   }).join('');
 }
 
-async function loadJobs() {
-  const r = await fetch('/api/jobs'); state.jobs = await r.json(); renderJobs();
-}
+async function loadJobs() { const r = await fetch('/api/jobs'); state.jobs = await r.json(); renderJobs(); }
 async function cancelJob(id) { await fetch('/api/jobs/' + id + '/cancel', {method:'POST'}); loadJobs(); }
 async function removeJob(id) { await fetch('/api/jobs/' + id, {method:'DELETE'}); loadJobs(); }
 
 function showTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.getElementById('tab-convert').style.display = name === 'convert' ? '' : 'none';
+  document.getElementById('tab-batch').style.display = name === 'batch' ? '' : 'none';
   document.getElementById('tab-jobs').style.display = name === 'jobs' ? '' : 'none';
   if (name === 'jobs') loadJobs();
+  if (name === 'batch') renderBatch();
 }
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
 
@@ -568,10 +821,7 @@ ws.onmessage = ev => {
     const i = state.jobs.findIndex(j => j.id === msg.job.id);
     if (i >= 0) state.jobs[i] = msg.job; else state.jobs.unshift(msg.job);
   }
-  if (msg.type === 'progress') {
-    const j = state.jobs.find(x => x.id === msg.id);
-    if (j) Object.assign(j, msg);
-  }
+  if (msg.type === 'progress') { const j = state.jobs.find(x => x.id === msg.id); if (j) Object.assign(j, msg); }
   if (msg.type === 'removed') state.jobs = state.jobs.filter(j => j.id !== msg.id);
   renderJobs();
 };

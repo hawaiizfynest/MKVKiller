@@ -5,25 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MKVForge</title>
 <style>
-:root {
-  --bg: #0f1115;
-  --panel: #171a21;
-  --panel-2: #1f232c;
-  --border: #2a2f3a;
-  --text: #e6e8ee;
-  --muted: #8b93a7;
-  --accent: #5b8cff;
-  --accent-2: #7aa2ff;
-  --good: #3ecf8e;
-  --warn: #ffb020;
-  --err: #ff5c5c;
-}
-* { box-sizing: border-box; }
-body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel); }
+:root { --bg:#0f1115; --panel:#171a21; --panel-2:#1f232c; --border:#2a2f3a; --text:#e6e8ee; --muted:#8b93a7; --accent:#5b8cff; --accent-2:#7aa2ff; --good:#3ecf8e; --warn:#ffb020; --err:#ff5c5c; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel); gap:14px; }
 header h1 { font-size:18px; margin:0; letter-spacing:0.3px; }
 header h1 span { color:var(--accent-2); }
-main { display:grid; grid-template-columns: 380px 1fr; gap:0; height: calc(100vh - 53px); }
+.hw-pill { font-size:11px; padding:3px 8px; border-radius:10px; background:var(--panel-2); border:1px solid var(--border); color:var(--muted); }
+.hw-pill.active { color:var(--good); border-color:var(--good); }
+main { display:grid; grid-template-columns:380px 1fr; gap:0; height:calc(100vh - 53px); }
 .sidebar { border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; display:flex; flex-direction:column; }
 .sidebar-actions { padding:8px 10px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-wrap:wrap; position:sticky; top:0; background:var(--panel); z-index:5; }
 .sidebar-actions .count { font-size:11px; color:var(--muted); margin-left:auto; }
@@ -36,10 +26,8 @@ main { display:grid; grid-template-columns: 380px 1fr; gap:0; height: calc(100vh
 .file-list li:hover { background:var(--panel-2); }
 .file-list li.selected { background:#243049; }
 .file-list li.queued { background:#1e2a1e; }
-.file-list li.selected.queued { background:#2a3a3a; }
 .file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 .file-list .size { color:var(--muted); font-size:11px; flex-shrink:0; }
-.file-list .icon { margin-right:4px; }
 .file-list .qbox { width:15px; height:15px; accent-color:var(--good); flex-shrink:0; cursor:pointer; }
 .file-list .qbox-placeholder { width:15px; flex-shrink:0; }
 button { background:var(--accent); color:white; border:none; padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer; font-weight:500; }
@@ -48,7 +36,6 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
 button.ghost:hover { background:var(--panel-2); }
 button.small { padding:5px 9px; font-size:11px; }
-button.danger { background:var(--err); }
 button.success { background:var(--good); color:#0a2a1a; }
 .track { display:flex; align-items:center; gap:10px; padding:8px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; }
 .track input[type=checkbox] { width:16px; height:16px; accent-color:var(--accent); }
@@ -56,10 +43,9 @@ button.success { background:var(--good); color:#0a2a1a; }
 .badge.video { background:#3a2b5e; color:#c9b1ff; }
 .badge.audio { background:#1e4a3a; color:#9ce5c1; }
 .badge.subtitle { background:#5e3a2b; color:#ffc9a1; }
-.badge.other { background:#3a3a3a; color:#ccc; }
 .track .meta { flex:1; color:var(--muted); font-size:12px; }
 .track strong { color:var(--text); font-weight:500; }
-.grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
 label.field input, label.field select { padding:7px 9px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:5px; font-size:13px; }
 .field-hint { font-size:10px; color:var(--accent-2); font-weight:500; margin-top:2px; }
@@ -72,8 +58,9 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 .status.done { background:#1e4a3a; color:#9ce5c1; }
 .status.error { background:#5e2b2b; color:#ffa1a1; }
 .status.cancelled { background:#3a3a3a; color:#999; }
+.status.interrupted { background:#5e4a2b; color:#ffd9a1; }
 .bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
-.bar > div { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.3s; }
+.bar > div { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition:width 0.3s; }
 .job-meta { display:flex; gap:12px; font-size:11px; color:var(--muted); margin-top:6px; flex-wrap:wrap; }
 .empty { color:var(--muted); text-align:center; padding:30px 10px; font-size:13px; }
 .crumbs { padding:6px 12px; font-size:12px; }
@@ -100,24 +87,57 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 .queue-file .x { color:var(--err); cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
 .queue-file .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .rec-badge { display:inline-block; padding:1px 6px; background:var(--panel); border:1px solid var(--accent); color:var(--accent-2); border-radius:3px; font-size:10px; font-weight:600; margin-left:6px; }
+.encoder-tabs { display:flex; gap:0; margin-bottom:10px; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.enc-opt { flex:1; padding:8px 10px; text-align:center; background:var(--panel); color:var(--muted); cursor:pointer; font-size:12px; border-right:1px solid var(--border); }
+.enc-opt:last-child { border-right:none; }
+.enc-opt:hover:not(.disabled) { background:var(--panel-2); color:var(--text); }
+.enc-opt.active { background:var(--accent); color:white; font-weight:600; }
+.enc-opt.disabled { opacity:0.4; cursor:not-allowed; }
+.enc-opt b { display:block; font-size:13px; margin-bottom:1px; }
+.enc-opt span { font-size:10px; opacity:0.8; }
+.option-box { margin-top:14px; padding:10px 12px; background:var(--panel); border:1px solid var(--border); border-radius:6px; display:flex; gap:10px; align-items:flex-start; }
+.option-box input[type=checkbox] { width:16px; height:16px; margin-top:2px; flex-shrink:0; }
+.option-box label { font-size:13px; cursor:pointer; flex:1; }
+.option-box label .desc { color:var(--muted); font-size:11px; margin-top:2px; }
+.log-pre { background:#0a0c10; border:1px solid var(--border); border-radius:6px; padding:10px; font-family:Menlo,Consolas,monospace; font-size:11px; color:#cdd1da; max-height:500px; overflow:auto; white-space:pre-wrap; word-break:break-all; }
+.log-toolbar { display:flex; gap:6px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+.log-search { flex:1; padding:6px 9px; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:5px; font-size:12px; min-width:200px; }
+.log-stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:14px; }
+.stat-card { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px; }
+.stat-card .label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+.stat-card .value { font-size:20px; font-weight:600; margin-top:4px; }
+.stat-card.success .value { color:var(--good); }
+.stat-card.error .value { color:var(--err); }
+.stat-card.interrupted .value { color:var(--warn); }
+.log-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; cursor:pointer; }
+.log-row:hover { border-color:var(--accent); }
+.log-row .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.log-row .when { font-size:11px; color:var(--muted); flex-shrink:0; }
+.log-detail { background:#0a0c10; border:1px solid var(--border); border-radius:8px; padding:14px; margin-top:14px; }
+.log-detail h3 { margin:0 0 8px; font-size:14px; }
+.log-detail .meta-row { display:grid; grid-template-columns:140px 1fr; gap:6px 14px; font-size:12px; margin-bottom:14px; }
+.log-detail .meta-row .k { color:var(--muted); }
 </style>
 </head>
 <body>
 <header>
   <h1>MKV<span>Forge</span></h1>
-  <div style="font-size:12px;color:var(--muted)" id="health"></div>
+  <div style="display:flex; gap:8px; align-items:center">
+    <span class="hw-pill" id="hwCpu">CPU</span>
+    <span class="hw-pill" id="hwQsv">QSV</span>
+    <span class="hw-pill" id="hwNvenc">NVENC</span>
+    <span style="font-size:12px;color:var(--muted)" id="health"></span>
+  </div>
 </header>
 <main>
   <div class="sidebar">
     <div class="sidebar-actions">
-      <button class="small" id="selectAllBtn">Select all in folder</button>
+      <button class="small" id="selectAllBtn">Select all</button>
       <button class="small ghost" id="clearQueueBtn">Clear</button>
       <button class="small success" id="batchBtn" style="display:none">Batch → <span id="batchCount">0</span></button>
       <span class="count" id="queueCount"></span>
     </div>
-    <div class="path-bar">
-      <div class="crumbs" id="crumbs"></div>
-    </div>
+    <div class="path-bar"><div class="crumbs" id="crumbs"></div></div>
     <ul class="file-list" id="files"></ul>
   </div>
   <div class="content">
@@ -125,379 +145,202 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
       <div class="tab active" data-tab="convert">Convert</div>
       <div class="tab" data-tab="batch">Batch <span id="batchTabCount" style="color:var(--muted);margin-left:4px"></span></div>
       <div class="tab" data-tab="jobs">Jobs</div>
+      <div class="tab" data-tab="log">Log</div>
     </div>
-
-    <div id="tab-convert">
-      <div class="panel" id="selectedPanel">
-        <h2>No file selected</h2>
-        <div class="empty">Click a filename to inspect tracks. Use the green checkboxes to queue multiple files for batch conversion.</div>
-      </div>
-    </div>
-
-    <div id="tab-batch" style="display:none">
-      <div class="panel">
-        <h2>Batch Convert</h2>
-        <div id="batchContent"></div>
-      </div>
-    </div>
-
-    <div id="tab-jobs" style="display:none">
-      <div class="panel">
-        <h2>Conversion Jobs</h2>
-        <div id="jobs"><div class="empty">No jobs yet.</div></div>
-      </div>
-    </div>
+    <div id="tab-convert"><div class="panel" id="selectedPanel"><h2>No file selected</h2><div class="empty">Click a filename to inspect tracks. Use the green checkboxes to queue multiple files for batch conversion.</div></div></div>
+    <div id="tab-batch" style="display:none"><div class="panel"><h2>Batch Convert</h2><div id="batchContent"></div></div></div>
+    <div id="tab-jobs" style="display:none"><div class="panel"><h2>Active &amp; Recent Jobs</h2><div id="jobs"><div class="empty">No jobs yet.</div></div></div></div>
+    <div id="tab-log" style="display:none"><div class="panel"><h2>Conversion History</h2><div id="logContent"></div></div></div>
   </div>
 </main>
 <script>
-const state = {
-  cwd: '',
-  selected: null,
-  probe: null,
-  jobs: [],
-  queue: new Map(), // path -> {name, size}
-  currentFiles: [],
-  probeCache: new Map() // path -> probe data
-};
+const state = { cwd:'', selected:null, probe:null, jobs:[], queue:new Map(), currentFiles:[], probeCache:new Map(), caps:{cpu:true,qsv:false,nvenc:false}, openLogId:null };
 
-function fmtBytes(n) {
-  if (!n) return '-';
-  const u = ['B','KB','MB','GB','TB']; let i = 0;
-  while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
-  return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2) + ' ' + u[i];
-}
-function fmtDur(s) {
-  if (!s) return '-';
-  s = Math.floor(s);
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
-  return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+function fmtBytes(n) { if (!n) return '-'; const u=['B','KB','MB','GB','TB']; let i=0; while (n>=1024&&i<u.length-1){n/=1024;i++;} return n.toFixed(n>=100?0:n>=10?1:2)+' '+u[i]; }
+function fmtDur(s) { if (!s) return '-'; s=Math.floor(s); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60; return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
+function fmtAgo(ts) { if (!ts) return '-'; const d = Date.now() - ts; const m = Math.floor(d/60000); if (m<1) return 'just now'; if (m<60) return m + 'm ago'; const h = Math.floor(m/60); if (h<24) return h + 'h ago'; return Math.floor(h/24) + 'd ago'; }
+function fmtDate(ts) { if (!ts) return '-'; return new Date(ts).toLocaleString(); }
+
+function recommendAudioBitrate(c) { if (!c) return 192; if (c<=1) return 96; if (c===2) return 192; if (c<=6) return 384; return 512; }
+function snapAudioBitrate(k) { const o=[128,192,256,384]; let b=o[0],bd=Infinity; for (const x of o) { const d=Math.abs(x-k); if (d<bd){bd=d;b=x;} } return b; }
+
+function estimateVideoBitrateKbps(crf, w, h, src, enc) {
+  const ref={14:18000,16:13000,18:9000,19:7500,20:6000,21:5000,22:4200,23:3500,24:2900,25:2400,26:2000,27:1700,28:1400,29:1200,30:1000};
+  const c=Math.max(14,Math.min(30,crf)); const lo=Math.floor(c),hi=Math.ceil(c),f=c-lo;
+  const base=ref[lo]*(1-f)+ref[hi]*f; let s=base*((w||1920)*(h||1080)/(1920*1080));
+  if (src==='hevc'||src==='h265') s*=1.1;
+  if (enc==='qsv') s*=1.20; else if (enc==='nvenc') s*=1.15;
+  return s;
 }
 
-// ---- Audio bitrate recommendation ----
-// AAC needs ~64 kbps per channel for transparent quality. Cap at reasonable values.
-function recommendAudioBitrate(channels) {
-  if (!channels) return 192;
-  if (channels <= 1) return 96;
-  if (channels === 2) return 192;
-  if (channels <= 6) return 384; // 5.1
-  return 512; // 7.1 and up
-}
-
-// Closest option in the bitrate dropdown
-function snapAudioBitrate(kbps) {
-  const options = [128, 192, 256, 384];
-  let best = options[0], bestDiff = Infinity;
-  for (const o of options) {
-    const d = Math.abs(o - kbps);
-    if (d < bestDiff) { bestDiff = d; best = o; }
-  }
-  return best;
-}
-
-// ---- Size estimation ----
-function estimateVideoBitrateKbps(crf, width, height, sourceCodec) {
-  const ref1080 = {
-    14: 18000, 16: 13000, 18: 9000, 19: 7500,
-    20: 6000, 21: 5000, 22: 4200, 23: 3500,
-    24: 2900, 25: 2400, 26: 2000, 27: 1700,
-    28: 1400, 29: 1200, 30: 1000
-  };
-  const crfClamped = Math.max(14, Math.min(30, crf));
-  const lo = Math.floor(crfClamped), hi = Math.ceil(crfClamped);
-  const frac = crfClamped - lo;
-  const base = ref1080[lo] * (1 - frac) + ref1080[hi] * frac;
-  const pixels = (width || 1920) * (height || 1080);
-  let scaled = base * (pixels / (1920*1080));
-  if (sourceCodec === 'hevc' || sourceCodec === 'h265') scaled *= 1.1;
-  return scaled;
-}
+function currentEncoder() { const e=document.getElementById('encoder'); return e?e.value:'cpu'; }
+function currentQuality() { const e=currentEncoder(); return parseInt(document.getElementById(e==='cpu'?'crf':'hwQuality').value,10); }
 
 function estimateOutputSize() {
   if (!state.probe) return null;
-  const checks = [...document.querySelectorAll('#tracks input[type=checkbox]')];
-  const keptVideo = checks.find(c => c.checked && c.dataset.type === 'video');
-  if (!keptVideo) return null;
-  const vStream = state.probe.streams.find(s => s.index === parseInt(keptVideo.dataset.idx, 10));
-  if (!vStream) return null;
-  const duration = state.probe.format.duration || 0;
-  if (!duration) return null;
-
-  const crf = parseInt(document.getElementById('crf').value, 10);
-  const maxH = document.getElementById('maxHeight').value;
-  let width = vStream.width || 1920, height = vStream.height || 1080;
-  if (maxH) {
-    const t = parseInt(maxH, 10);
-    if (height > t) { width = Math.round(width * (t/height)); height = t; }
+  const checks=[...document.querySelectorAll('#tracks input[type=checkbox]')];
+  const kv=checks.find(c=>c.checked&&c.dataset.type==='video'); if (!kv) return null;
+  const v=state.probe.streams.find(s=>s.index===parseInt(kv.dataset.idx,10)); if (!v) return null;
+  const dur=state.probe.format.duration||0; if (!dur) return null;
+  const enc=currentEncoder(), q=currentQuality();
+  const mh=document.getElementById('maxHeight').value;
+  let w=v.width||1920, h=v.height||1080;
+  if (mh) { const t=parseInt(mh,10); if (h>t) {w=Math.round(w*(t/h));h=t;} }
+  const vk=estimateVideoBitrateKbps(q,w,h,v.codec_name,enc);
+  const am=document.getElementById('audioMode').value;
+  const ab=parseInt(document.getElementById('audioBitrate').value,10);
+  let ak=0;
+  for (const c of checks.filter(c=>c.checked&&c.dataset.type==='audio')) {
+    const s=state.probe.streams.find(st=>st.index===parseInt(c.dataset.idx,10));
+    if (am==='copy'&&s&&s.bit_rate) ak+=parseInt(s.bit_rate,10)/1000; else ak+=ab;
   }
-  const videoKbps = estimateVideoBitrateKbps(crf, width, height, vStream.codec_name);
-
-  const audioMode = document.getElementById('audioMode').value;
-  const audioBitrateVal = parseInt(document.getElementById('audioBitrate').value, 10);
-  let audioKbps = 0;
-  const keptAudio = checks.filter(c => c.checked && c.dataset.type === 'audio');
-  for (const c of keptAudio) {
-    const s = state.probe.streams.find(st => st.index === parseInt(c.dataset.idx, 10));
-    if (audioMode === 'copy' && s && s.bit_rate) audioKbps += parseInt(s.bit_rate, 10) / 1000;
-    else audioKbps += audioBitrateVal;
-  }
-  const bytes = ((videoKbps + audioKbps) * 1000 / 8) * duration;
-  return { bytes, videoKbps: Math.round(videoKbps), audioKbps: Math.round(audioKbps) };
+  return { bytes:((vk+ak)*1000/8)*dur, videoKbps:Math.round(vk), audioKbps:Math.round(ak) };
 }
 
 function updateEstimate() {
-  const el = document.getElementById('estimate');
-  if (!el) return;
-  const est = estimateOutputSize();
-  if (!est) { el.style.display = 'none'; return; }
-  el.style.display = 'block';
-  const inputSize = state.probe.format.size;
-  const delta = inputSize ? ((1 - est.bytes/inputSize) * 100) : 0;
-  const dCls = delta >= 5 ? 'shrink' : (delta <= -5 ? 'grow' : '');
-  const dTxt = delta >= 0 ? `-${delta.toFixed(0)}%` : `+${Math.abs(delta).toFixed(0)}%`;
-
-  let advice = '';
-  if (delta < 0) advice = `<div class="advice">⚠️ Output will be <b>larger</b> than source. Raise CRF (23–26) or downscale.</div>`;
-  else if (delta < 10) advice = `<div class="advice">⚠️ Only minor savings. Try CRF 23+ or "Shrink hard".</div>`;
-
-  el.innerHTML = `
-    <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
-      <span class="estimate-value">${fmtBytes(est.bytes)} <span class="${dCls}" style="font-size:12px;margin-left:6px">${dTxt}</span></span></div>
-    <div class="estimate-row"><span class="estimate-label">Source size</span>
-      <span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(inputSize)}</span></div>
-    <div class="estimate-row"><span class="estimate-label">Target bitrate</span>
-      <span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps video + ${est.audioKbps} kbps audio</span></div>
-    <div class="estimate-note">Estimate based on typical x264 CRF behavior. Real output can vary ±30% depending on content.</div>
-    ${advice}
-  `;
+  const el=document.getElementById('estimate'); if (!el) return;
+  const est=estimateOutputSize(); if (!est) { el.style.display='none'; return; }
+  el.style.display='block';
+  const ins=state.probe.format.size;
+  const d=ins?((1-est.bytes/ins)*100):0;
+  const dc=d>=5?'shrink':(d<=-5?'grow':''), dt=d>=0?`-${d.toFixed(0)}%`:`+${Math.abs(d).toFixed(0)}%`;
+  const enc=currentEncoder(), encL=enc==='cpu'?'x264 (CPU)':(enc==='qsv'?'Intel QSV':'NVIDIA NVENC');
+  let adv='';
+  if (d<0) adv=`<div class="advice">⚠️ Output will be <b>larger</b> than source.</div>`;
+  else if (d<10) adv=`<div class="advice">⚠️ Only minor savings expected.</div>`;
+  el.innerHTML=`
+    <div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${fmtBytes(est.bytes)} <span class="${dc}" style="font-size:12px;margin-left:6px">${dt}</span></span></div>
+    <div class="estimate-row"><span class="estimate-label">Source size</span><span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(ins)}</span></div>
+    <div class="estimate-row"><span class="estimate-label">Encoder</span><span class="estimate-value" style="font-weight:500">${encL}</span></div>
+    <div class="estimate-row"><span class="estimate-label">Target bitrate</span><span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps + ${est.audioKbps} kbps audio</span></div>
+    ${adv}`;
 }
 
 function getRecommendations(probe) {
-  if (!probe) return [];
-  const v = probe.streams.find(s => s.codec_type === 'video');
-  const srcCodec = v ? v.codec_name : 'h264';
-  const srcH = v ? v.height : 1080;
-  const isHEVC = srcCodec === 'hevc' || srcCodec === 'h265';
-  const recs = [];
-  if (isHEVC) {
-    recs.push({ id:'archival', name:'Archival quality', desc:'Near-lossless.', crf:20, preset:'slow', maxHeight:'' });
-    recs.push({ id:'balanced', name:'Balanced', desc:'Good quality, matches source size.', crf:23, preset:'slow', maxHeight:'' });
-    recs.push({ id:'shrink', name:'Shrink hard', desc:'~40–50% smaller.', crf:25, preset:'slow', maxHeight:'' });
-  } else {
-    recs.push({ id:'light', name:'Light compression', desc:'Small savings, lossless.', crf:22, preset:'slow', maxHeight:'' });
-    recs.push({ id:'balanced', name:'Balanced', desc:'~30–40% smaller.', crf:24, preset:'slow', maxHeight:'' });
-    recs.push({ id:'shrink', name:'Shrink hard', desc:'~50–60% smaller.', crf:26, preset:'slow', maxHeight:'' });
-  }
-  if (srcH && srcH > 1440) recs.push({ id:'downscale', name:'1080p downscale', desc:'Big size cut.', crf:23, preset:'slow', maxHeight:'1080' });
+  const v=probe.streams.find(s=>s.codec_type==='video');
+  const sc=v?v.codec_name:'h264', sh=v?v.height:1080, isH=sc==='hevc'||sc==='h265';
+  const recs=[];
+  if (isH) { recs.push({id:'archival',name:'Archival',crf:20,preset:'slow',maxHeight:''}); recs.push({id:'balanced',name:'Balanced',crf:23,preset:'slow',maxHeight:''}); recs.push({id:'shrink',name:'Shrink hard',crf:25,preset:'slow',maxHeight:''}); }
+  else { recs.push({id:'light',name:'Light',crf:22,preset:'slow',maxHeight:''}); recs.push({id:'balanced',name:'Balanced',crf:24,preset:'slow',maxHeight:''}); recs.push({id:'shrink',name:'Shrink hard',crf:26,preset:'slow',maxHeight:''}); }
+  if (sh && sh>1440) recs.push({id:'downscale',name:'1080p',crf:23,preset:'slow',maxHeight:'1080'});
   return recs;
 }
-
 function applyPreset(p) {
-  document.getElementById('crf').value = p.crf;
-  document.getElementById('preset').value = p.preset;
-  document.getElementById('maxHeight').value = p.maxHeight;
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.id === p.id));
+  const e=currentEncoder();
+  if (e==='cpu') document.getElementById('crf').value=p.crf; else document.getElementById('hwQuality').value=p.crf;
+  document.getElementById('preset').value=p.preset;
+  document.getElementById('maxHeight').value=p.maxHeight;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.id===p.id));
   updateEstimate();
 }
 
 async function browse(p) {
-  const r = await fetch('/api/browse?path=' + encodeURIComponent(p || ''));
-  const data = await r.json();
-  if (data.error) { alert(data.error); return; }
-  state.cwd = data.cwd;
-  state.currentFiles = data.items.filter(i => !i.dir && i.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/));
-  renderFiles(data.items);
-  renderCrumbs();
+  const r=await fetch('/api/browse?path='+encodeURIComponent(p||'')); const d=await r.json();
+  if (d.error) { alert(d.error); return; }
+  state.cwd=d.cwd;
+  state.currentFiles=d.items.filter(i=>!i.dir&&i.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/));
+  renderFiles(d.items); renderCrumbs();
 }
-
 function renderCrumbs() {
-  const parts = state.cwd ? state.cwd.split('/') : [];
-  const el = document.getElementById('crumbs');
-  let html = `<a data-path="">📁 /media</a>`;
-  let cum = '';
-  for (const p of parts) {
-    cum = cum ? cum + '/' + p : p;
-    html += ` / <a data-path="${cum}">${p}</a>`;
-  }
-  el.innerHTML = html;
-  el.querySelectorAll('a').forEach(a => a.onclick = () => browse(a.dataset.path));
+  const parts=state.cwd?state.cwd.split('/'):[]; const el=document.getElementById('crumbs');
+  let html=`<a data-path="">📁 /media</a>`, cum='';
+  for (const p of parts) { cum=cum?cum+'/'+p:p; html+=` / <a data-path="${cum}">${p}</a>`; }
+  el.innerHTML=html; el.querySelectorAll('a').forEach(a=>a.onclick=()=>browse(a.dataset.path));
 }
-
 function renderFiles(items) {
-  const ul = document.getElementById('files');
-  ul.innerHTML = '';
-  if (state.cwd) {
-    const parent = state.cwd.split('/').slice(0, -1).join('/');
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="qbox-placeholder"></span><span class="name"><span class="icon">⬆️</span>..</span>`;
-    li.onclick = () => browse(parent);
-    ul.appendChild(li);
-  }
+  const ul=document.getElementById('files'); ul.innerHTML='';
+  if (state.cwd) { const parent=state.cwd.split('/').slice(0,-1).join('/'); const li=document.createElement('li'); li.innerHTML=`<span class="qbox-placeholder"></span><span class="name">⬆️ ..</span>`; li.onclick=()=>browse(parent); ul.appendChild(li); }
   for (const it of items) {
-    const li = document.createElement('li');
-    const icon = it.dir ? '📁' : (it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/) ? '🎬' : '📄');
-    const isMedia = !it.dir && it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/);
-    const isQueued = state.queue.has(it.path);
-    if (isQueued) li.classList.add('queued');
-
-    const cbHTML = isMedia
-      ? `<input type="checkbox" class="qbox" data-path="${it.path}" data-name="${it.name}" data-size="${it.size}" ${isQueued ? 'checked' : ''}>`
-      : `<span class="qbox-placeholder"></span>`;
-
-    li.innerHTML = `${cbHTML}<span class="name"><span class="icon">${icon}</span>${it.name}</span><span class="size">${it.dir ? '' : fmtBytes(it.size)}</span>`;
-
-    const nameEl = li.querySelector('.name');
-    nameEl.onclick = (ev) => {
-      ev.stopPropagation();
-      if (it.dir) browse(it.path);
-      else selectFile(it, ev);
-    };
-    li.onclick = (ev) => {
-      if (ev.target.classList.contains('qbox')) return;
-      if (it.dir) browse(it.path);
-      else selectFile(it, ev);
-    };
-    const cb = li.querySelector('.qbox');
-    if (cb) {
-      cb.onclick = (ev) => {
-        ev.stopPropagation();
-        if (cb.checked) state.queue.set(it.path, { name: it.name, size: it.size });
-        else state.queue.delete(it.path);
-        li.classList.toggle('queued', cb.checked);
-        updateQueueUI();
-      };
-    }
+    const li=document.createElement('li');
+    const isMedia=!it.dir&&it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/);
+    const icon=it.dir?'📁':(isMedia?'🎬':'📄');
+    const isQ=state.queue.has(it.path); if (isQ) li.classList.add('queued');
+    const cb=isMedia?`<input type="checkbox" class="qbox" data-path="${it.path}" data-name="${it.name}" data-size="${it.size}" ${isQ?'checked':''}>`:`<span class="qbox-placeholder"></span>`;
+    li.innerHTML=`${cb}<span class="name">${icon} ${it.name}</span><span class="size">${it.dir?'':fmtBytes(it.size)}</span>`;
+    li.querySelector('.name').onclick=(ev)=>{ ev.stopPropagation(); if (it.dir) browse(it.path); else selectFile(it,ev); };
+    li.onclick=(ev)=>{ if (ev.target.classList.contains('qbox')) return; if (it.dir) browse(it.path); else selectFile(it,ev); };
+    const c=li.querySelector('.qbox');
+    if (c) c.onclick=(ev)=>{ ev.stopPropagation(); if (c.checked) state.queue.set(it.path,{name:it.name,size:it.size}); else state.queue.delete(it.path); li.classList.toggle('queued',c.checked); updateQueueUI(); };
     ul.appendChild(li);
   }
 }
-
 function updateQueueUI() {
-  const n = state.queue.size;
-  document.getElementById('batchBtn').style.display = n > 0 ? '' : 'none';
-  document.getElementById('batchCount').textContent = n;
-  document.getElementById('queueCount').textContent = n ? `${n} queued` : '';
-  document.getElementById('batchTabCount').textContent = n ? `(${n})` : '';
-  if (document.getElementById('tab-batch').style.display !== 'none') renderBatch();
+  const n=state.queue.size;
+  document.getElementById('batchBtn').style.display=n>0?'':'none';
+  document.getElementById('batchCount').textContent=n;
+  document.getElementById('queueCount').textContent=n?`${n} queued`:'';
+  document.getElementById('batchTabCount').textContent=n?`(${n})`:'';
+  if (document.getElementById('tab-batch').style.display!=='none') renderBatch();
 }
-
-document.getElementById('selectAllBtn').onclick = () => {
-  for (const f of state.currentFiles) state.queue.set(f.path, { name: f.name, size: f.size });
-  renderFiles(state.currentFiles.length === document.querySelectorAll('#files li').length ? state.currentFiles : [...document.querySelectorAll('#files li')].map(() => null).filter(Boolean));
-  // Simple: just re-browse to re-render with correct state
-  browse(state.cwd);
-  updateQueueUI();
-};
-document.getElementById('clearQueueBtn').onclick = () => {
-  state.queue.clear();
-  browse(state.cwd);
-  updateQueueUI();
-};
-document.getElementById('batchBtn').onclick = () => showTab('batch');
+document.getElementById('selectAllBtn').onclick=()=>{ for (const f of state.currentFiles) state.queue.set(f.path,{name:f.name,size:f.size}); browse(state.cwd); updateQueueUI(); };
+document.getElementById('clearQueueBtn').onclick=()=>{ state.queue.clear(); browse(state.cwd); updateQueueUI(); };
+document.getElementById('batchBtn').onclick=()=>showTab('batch');
 
 async function selectFile(file, ev) {
-  state.selected = file;
-  document.querySelectorAll('.file-list li').forEach(l => l.classList.remove('selected'));
-  const li = ev && ev.currentTarget && ev.currentTarget.tagName === 'LI' ? ev.currentTarget : (ev && ev.target.closest && ev.target.closest('li'));
+  state.selected=file;
+  document.querySelectorAll('.file-list li').forEach(l=>l.classList.remove('selected'));
+  const li=ev&&ev.currentTarget&&ev.currentTarget.tagName==='LI'?ev.currentTarget:(ev&&ev.target.closest&&ev.target.closest('li'));
   if (li) li.classList.add('selected');
   showTab('convert');
-  const panel = document.getElementById('selectedPanel');
-  panel.innerHTML = `<h2>${file.name}</h2><div class="empty">Probing tracks...</div>`;
-  const r = await fetch('/api/probe?path=' + encodeURIComponent(file.path));
-  const data = await r.json();
-  if (data.error) { panel.innerHTML = `<h2>${file.name}</h2><div class="empty" style="color:var(--err)">${data.error}</div>`; return; }
-  state.probe = data;
-  renderProbe(file, data);
+  const panel=document.getElementById('selectedPanel');
+  panel.innerHTML=`<h2>${file.name}</h2><div class="empty">Probing tracks...</div>`;
+  const r=await fetch('/api/probe?path='+encodeURIComponent(file.path)); const d=await r.json();
+  if (d.error) { panel.innerHTML=`<h2>${file.name}</h2><div class="empty" style="color:var(--err)">${d.error}</div>`; return; }
+  state.probe=d; renderProbe(file,d);
+}
+
+function encoderTabsHTML(prefix) {
+  const opts=[{id:'cpu',name:'CPU (x264)',desc:'best quality',enabled:true},{id:'qsv',name:'Intel QSV',desc:state.caps.qsv?'fast, iGPU':'not available',enabled:state.caps.qsv},{id:'nvenc',name:'NVIDIA NVENC',desc:state.caps.nvenc?'fast, dGPU':'not available',enabled:state.caps.nvenc}];
+  return `<div class="encoder-tabs">${opts.map(o=>`<div class="enc-opt ${o.enabled?'':'disabled'} ${o.id==='cpu'?'active':''}" data-enc="${o.id}" data-prefix="${prefix}"><b>${o.name}</b><span>${o.desc}</span></div>`).join('')}<input type="hidden" id="${prefix}encoder" value="cpu"></div>`;
+}
+function wireEncoderTabs(prefix, onChange) {
+  document.querySelectorAll(`.enc-opt[data-prefix="${prefix}"]`).forEach(el=>{
+    el.onclick=()=>{ if (el.classList.contains('disabled')) return; document.querySelectorAll(`.enc-opt[data-prefix="${prefix}"]`).forEach(x=>x.classList.remove('active')); el.classList.add('active'); document.getElementById(prefix+'encoder').value=el.dataset.enc; if (onChange) onChange(el.dataset.enc); };
+  });
 }
 
 function renderProbe(file, data) {
-  const panel = document.getElementById('selectedPanel');
-  const subs = data.streams.filter(s => s.codec_type === 'subtitle');
-  const videoStream = data.streams.find(s => s.codec_type === 'video');
-  const srcCodec = videoStream ? videoStream.codec_name : 'unknown';
-  const recs = getRecommendations(data);
+  const panel=document.getElementById('selectedPanel');
+  const subs=data.streams.filter(s=>s.codec_type==='subtitle');
+  const v=data.streams.find(s=>s.codec_type==='video');
+  const sc=v?v.codec_name:'?'; const recs=getRecommendations(data);
+  const aud=data.streams.filter(s=>s.codec_type==='audio');
+  const mc=aud.reduce((m,s)=>Math.max(m,s.channels||0),0);
+  const ras=snapAudioBitrate(recommendAudioBitrate(mc));
+  const audSummary=aud.length?`Source audio: ${aud.map(s=>`${s.codec_name}/${s.channels||'?'}ch (${s.bit_rate?Math.round(s.bit_rate/1000)+' kbps':'?'})`).join(', ')}`:'';
 
-  // Audio bitrate recommendation: based on highest-channel audio track
-  const audioStreams = data.streams.filter(s => s.codec_type === 'audio');
-  const maxCh = audioStreams.reduce((m, s) => Math.max(m, s.channels || 0), 0);
-  const recAudioKbps = recommendAudioBitrate(maxCh);
-  const recAudioSnapped = snapAudioBitrate(recAudioKbps);
-
-  // Show source audio bitrates summary
-  let audioSummary = '';
-  if (audioStreams.length) {
-    const parts = audioStreams.map(s => {
-      const br = s.bit_rate ? Math.round(s.bit_rate/1000) + ' kbps' : '?';
-      return `${s.codec_name}/${s.channels || '?'}ch (${br})`;
-    });
-    audioSummary = `Source audio: ${parts.join(', ')}`;
-  }
-
-  panel.innerHTML = `
+  panel.innerHTML=`
     <h2>${file.name}</h2>
-    <div class="sizes">
-      ${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · source codec: <b style="color:var(--text)">${srcCodec}</b>${videoStream && videoStream.width ? ` · ${videoStream.width}×${videoStream.height}` : ''}
-    </div>
-    ${audioSummary ? `<div class="sizes" style="margin-top:4px">${audioSummary}</div>` : ''}
+    <div class="sizes">${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · source codec: <b style="color:var(--text)">${sc}</b>${v&&v.width?` · ${v.width}×${v.height}`:''}</div>
+    ${audSummary?`<div class="sizes" style="margin-top:4px">${audSummary}</div>`:''}
 
-    <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Recommended settings</div>
-    <div class="presets" id="presets">
-      ${recs.map(r => `<button class="preset-btn" data-id="${r.id}" title="${r.desc}"><b>${r.name}</b> · CRF ${r.crf}${r.maxHeight ? ` · ${r.maxHeight}p` : ''}</button>`).join('')}
-    </div>
+    <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Encoder</div>
+    ${encoderTabsHTML('')}
+
+    <div style="margin:14px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Recommended settings</div>
+    <div class="presets" id="presets">${recs.map(r=>`<button class="preset-btn" data-id="${r.id}"><b>${r.name}</b> · CRF ${r.crf}${r.maxHeight?` · ${r.maxHeight}p`:''}</button>`).join('')}</div>
 
     <div style="margin:14px 0 8px;font-size:13px;color:var(--muted)">Tracks (check to keep)</div>
     <div id="tracks"></div>
 
     <div style="margin-top:18px" class="grid">
-      <label class="field">Quality (CRF) <input type="number" id="crf" value="20" min="14" max="30" step="1"></label>
-      <label class="field">Preset
-        <select id="preset">
-          <option>ultrafast</option><option>superfast</option><option>veryfast</option>
-          <option>faster</option><option>fast</option><option>medium</option>
-          <option selected>slow</option><option>slower</option><option>veryslow</option>
-        </select>
-      </label>
-      <label class="field">Audio
-        <select id="audioMode">
-          <option value="auto" selected>Auto (AAC re-encode)</option>
-          <option value="copy">Copy (keep codec)</option>
-          <option value="aac">Force AAC</option>
-        </select>
-      </label>
-      <label class="field">Audio bitrate
-        <select id="audioBitrate">
-          <option value="128">128k</option>
-          <option value="192">192k</option>
-          <option value="256">256k</option>
-          <option value="384">384k</option>
-        </select>
-        <span class="field-hint">Recommended: <b>${recAudioSnapped}k</b> (${maxCh || '?'}-channel source)</span>
-      </label>
-      <label class="field">Subtitles
-        <select id="subtitleMode">
-          <option value="soft" selected>Soft (embedded mov_text)</option>
-          <option value="burn">Burn-in to video</option>
-          <option value="none">Drop</option>
-        </select>
-      </label>
-      <label class="field">Max height (downscale)
-        <select id="maxHeight">
-          <option value="">Keep original</option>
-          <option value="2160">2160p (4K)</option>
-          <option value="1080">1080p</option>
-          <option value="720">720p</option>
-          <option value="480">480p</option>
-        </select>
-      </label>
-      <label class="field" style="grid-column:span 2">Output filename
-        <input type="text" id="outputName" value="${file.name.replace(/\.[^.]+$/, '')}.mp4">
-      </label>
+      <label class="field" id="crfField">Quality (CRF) <input type="number" id="crf" value="20" min="14" max="30"></label>
+      <label class="field" id="hwField" style="display:none">Quality (HW) <input type="number" id="hwQuality" value="23" min="15" max="35"><span class="field-hint">18=high · 23=balanced · 28=small</span></label>
+      <label class="field">Preset <select id="preset"><option>ultrafast</option><option>superfast</option><option>veryfast</option><option>faster</option><option>fast</option><option>medium</option><option selected>slow</option><option>slower</option><option>veryslow</option></select></label>
+      <label class="field">Audio <select id="audioMode"><option value="auto" selected>Auto (AAC re-encode)</option><option value="copy">Copy</option><option value="aac">Force AAC</option></select></label>
+      <label class="field">Audio bitrate <select id="audioBitrate"><option value="128">128k</option><option value="192">192k</option><option value="256">256k</option><option value="384">384k</option></select><span class="field-hint">Recommended: <b>${ras}k</b> (${mc||'?'}-ch source)</span></label>
+      <label class="field">Subtitles <select id="subtitleMode"><option value="soft" selected>Soft (mov_text)</option><option value="burn">Burn-in</option><option value="none">Drop</option></select></label>
+      <label class="field">Max height <select id="maxHeight"><option value="">Keep original</option><option value="2160">2160p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
+      <label class="field" style="grid-column:span 2">Output filename <input type="text" id="outputName" value="${file.name.replace(/\.[^.]+$/, '')}.mp4"></label>
     </div>
 
-    <div style="margin-top:14px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;display:flex;gap:10px;align-items:flex-start">
-      <input type="checkbox" id="replaceOriginal" style="width:16px;height:16px;margin-top:2px;accent-color:var(--err)">
-      <label for="replaceOriginal" style="font-size:13px;cursor:pointer;flex:1">
-        <b style="color:var(--err)">Replace original file</b>
-        <div style="color:var(--muted);font-size:11px;margin-top:2px">After successful conversion, move the new MP4 into the source folder and <b>delete the original</b>. The replacement only happens if the conversion succeeds and the output is valid.</div>
-      </label>
+    <div class="option-box">
+      <input type="checkbox" id="resumable" style="accent-color:var(--accent)">
+      <label for="resumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Encode in 10-minute segments. If the container restarts mid-conversion, it picks up where it left off. Subtitle tracks are dropped in this mode.</div></label>
+    </div>
+    <div class="option-box">
+      <input type="checkbox" id="replaceOriginal" style="accent-color:var(--err)">
+      <label for="replaceOriginal"><b style="color:var(--err)">Replace original file</b><div class="desc">Move new MP4 into source folder and delete the original after successful conversion.</div></label>
     </div>
 
     <div id="burnPick" style="display:none;margin-top:10px"></div>
@@ -507,482 +350,325 @@ function renderProbe(file, data) {
       <button id="convertBtn">Start Conversion</button>
       <button class="ghost" id="refreshBtn">Re-probe</button>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
-      Tip: CRF 18–20 is visually lossless. CRF 23–25 is streaming-quality at about half the size.
-    </div>
   `;
+  document.getElementById('audioBitrate').value=String(ras);
 
-  // Set recommended audio bitrate as the default
-  document.getElementById('audioBitrate').value = String(recAudioSnapped);
-
-  const tracksEl = document.getElementById('tracks');
+  const tracksEl=document.getElementById('tracks');
   for (const s of data.streams) {
-    const type = ['video','audio','subtitle'].includes(s.codec_type) ? s.codec_type : 'other';
-    const badge = `<span class="badge ${type}">${type}</span>`;
-    let info = `<strong>${s.codec_name || '?'}</strong>`;
-    if (s.codec_type === 'video' && s.width) info += ` · ${s.width}×${s.height}`;
-    if (s.codec_type === 'audio') {
-      info += ` · ${s.channels || '?'}ch ${s.channel_layout || ''}`;
-      if (s.bit_rate) info += ` · <b style="color:var(--text)">${Math.round(s.bit_rate/1000)} kbps</b>`;
-      const rec = snapAudioBitrate(recommendAudioBitrate(s.channels));
-      info += ` <span class="rec-badge">rec ${rec}k</span>`;
-    }
-    info += ` · lang: ${s.language}`;
-    if (s.title) info += ` · "${s.title}"`;
-    if (s.default) info += ' · default';
-    if (s.forced) info += ' · forced';
-    const defaultCheck = s.codec_type === 'video' || (s.codec_type === 'audio' && s.default)
-      || (s.codec_type === 'audio' && s.language === 'eng') || (s.codec_type === 'subtitle' && s.default);
-    const row = document.createElement('div');
-    row.className = 'track';
-    row.innerHTML = `<input type="checkbox" data-idx="${s.index}" data-type="${s.codec_type}" ${defaultCheck ? 'checked' : ''}>
-                     ${badge}<span class="meta">#${s.index} ${info}</span>`;
+    const t=['video','audio','subtitle'].includes(s.codec_type)?s.codec_type:'other';
+    let info=`<strong>${s.codec_name||'?'}</strong>`;
+    if (s.codec_type==='video'&&s.width) info+=` · ${s.width}×${s.height}`;
+    if (s.codec_type==='audio') { info+=` · ${s.channels||'?'}ch ${s.channel_layout||''}`; if (s.bit_rate) info+=` · <b style="color:var(--text)">${Math.round(s.bit_rate/1000)} kbps</b>`; info+=` <span class="rec-badge">rec ${snapAudioBitrate(recommendAudioBitrate(s.channels))}k</span>`; }
+    info+=` · lang: ${s.language}`;
+    if (s.title) info+=` · "${s.title}"`;
+    if (s.default) info+=' · default';
+    const def=s.codec_type==='video'||(s.codec_type==='audio'&&s.default)||(s.codec_type==='audio'&&s.language==='eng')||(s.codec_type==='subtitle'&&s.default);
+    const row=document.createElement('div'); row.className='track';
+    row.innerHTML=`<input type="checkbox" data-idx="${s.index}" data-type="${s.codec_type}" ${def?'checked':''}><span class="badge ${t}">${t}</span><span class="meta">#${s.index} ${info}</span>`;
     tracksEl.appendChild(row);
   }
 
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.onclick = () => { const r = recs.find(x => x.id === btn.dataset.id); if (r) applyPreset(r); };
-  });
-  ['crf','preset','audioMode','audioBitrate','subtitleMode','maxHeight'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.addEventListener('change', updateEstimate); if (el.tagName === 'INPUT') el.addEventListener('input', updateEstimate); }
-  });
-  document.querySelectorAll('#tracks input[type=checkbox]').forEach(c => c.addEventListener('change', updateEstimate));
+  wireEncoderTabs('', (e)=>{ document.getElementById('crfField').style.display=e==='cpu'?'':'none'; document.getElementById('hwField').style.display=e==='cpu'?'none':''; updateEstimate(); });
+  document.querySelectorAll('.preset-btn').forEach(btn=>{ btn.onclick=()=>{ const r=recs.find(x=>x.id===btn.dataset.id); if (r) applyPreset(r); }; });
+  ['crf','hwQuality','preset','audioMode','audioBitrate','subtitleMode','maxHeight'].forEach(id=>{ const el=document.getElementById(id); if (el) { el.addEventListener('change',updateEstimate); if (el.tagName==='INPUT') el.addEventListener('input',updateEstimate); } });
+  document.querySelectorAll('#tracks input[type=checkbox]').forEach(c=>c.addEventListener('change',updateEstimate));
+  document.getElementById('subtitleMode').onchange=()=>{ const ss=document.getElementById('subtitleMode'); const pk=document.getElementById('burnPick'); if (ss.value==='burn'&&subs.length) { pk.style.display='block'; pk.innerHTML=`<label class="field">Subtitle to burn <select id="burnSubIndex">${subs.map(s=>`<option value="${s.index}">#${s.index} ${s.codec_name} (${s.language})${s.title?' — '+s.title:''}</option>`).join('')}</select></label>`; } else pk.style.display='none'; updateEstimate(); };
+  document.getElementById('refreshBtn').onclick=()=>{ fetch('/api/probe?path='+encodeURIComponent(file.path)).then(r=>r.json()).then(d=>{ if (!d.error){state.probe=d;renderProbe(file,d);} }); };
+  document.getElementById('convertBtn').onclick=()=>startConvert(file);
 
-  const subSel = document.getElementById('subtitleMode');
-  subSel.onchange = () => {
-    const pick = document.getElementById('burnPick');
-    if (subSel.value === 'burn' && subs.length) {
-      pick.style.display = 'block';
-      pick.innerHTML = `<label class="field">Subtitle track to burn <select id="burnSubIndex">` +
-        subs.map(s => `<option value="${s.index}">#${s.index} ${s.codec_name} (${s.language})${s.title ? ' — ' + s.title : ''}</option>`).join('') +
-        `</select></label>`;
-    } else pick.style.display = 'none';
-    updateEstimate();
-  };
-
-  document.getElementById('refreshBtn').onclick = () => selectFileRefresh(file);
-  document.getElementById('convertBtn').onclick = () => startConvert(file);
-
-  const defaultPreset = recs.find(r => r.id === 'balanced') || recs[0];
-  if (defaultPreset) applyPreset(defaultPreset);
-  else updateEstimate();
-}
-
-function selectFileRefresh(file) {
-  fetch('/api/probe?path=' + encodeURIComponent(file.path)).then(r => r.json()).then(d => {
-    if (!d.error) { state.probe = d; renderProbe(file, d); }
-  });
+  const dp=recs.find(r=>r.id==='balanced')||recs[0]; if (dp) applyPreset(dp); else updateEstimate();
 }
 
 async function startConvert(file) {
-  const checks = [...document.querySelectorAll('#tracks input[type=checkbox]')];
-  const selected = checks.filter(c => c.checked).map(c => parseInt(c.dataset.idx, 10));
-  if (!selected.length) { alert('Select at least one track.'); return; }
-  if (!checks.some(c => c.checked && c.dataset.type === 'video')) { alert('At least one video track must be selected.'); return; }
-  const replaceOriginal = document.getElementById('replaceOriginal').checked;
-  if (replaceOriginal && !confirm(`This will DELETE the original file "${file.name}" after conversion. Continue?`)) return;
-  const body = {
-    inputPath: file.path,
-    selectedStreams: selected,
-    crf: parseInt(document.getElementById('crf').value, 10),
-    preset: document.getElementById('preset').value,
-    audioMode: document.getElementById('audioMode').value,
-    audioBitrate: document.getElementById('audioBitrate').value + 'k',
-    subtitleMode: document.getElementById('subtitleMode').value,
-    maxHeight: document.getElementById('maxHeight').value || null,
-    outputName: document.getElementById('outputName').value,
-    replaceOriginal: replaceOriginal
-  };
-  const burn = document.getElementById('burnSubIndex');
-  if (body.subtitleMode === 'burn' && burn) body.burnSubIndex = parseInt(burn.value, 10);
-  const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  const d = await r.json();
+  const checks=[...document.querySelectorAll('#tracks input[type=checkbox]')];
+  const sel=checks.filter(c=>c.checked).map(c=>parseInt(c.dataset.idx,10));
+  if (!sel.length) { alert('Select at least one track.'); return; }
+  if (!checks.some(c=>c.checked&&c.dataset.type==='video')) { alert('Need at least one video track.'); return; }
+  const repl=document.getElementById('replaceOriginal').checked;
+  if (repl && !confirm(`This will DELETE "${file.name}" after conversion. Continue?`)) return;
+  const enc=currentEncoder();
+  const body={ inputPath:file.path, selectedStreams:sel, encoder:enc,
+    crf:parseInt(document.getElementById('crf').value,10), hwQuality:parseInt(document.getElementById('hwQuality').value,10),
+    preset:document.getElementById('preset').value, audioMode:document.getElementById('audioMode').value,
+    audioBitrate:document.getElementById('audioBitrate').value+'k', subtitleMode:document.getElementById('subtitleMode').value,
+    maxHeight:document.getElementById('maxHeight').value||null, outputName:document.getElementById('outputName').value,
+    replaceOriginal:repl, resumable:document.getElementById('resumable').checked };
+  const burn=document.getElementById('burnSubIndex'); if (body.subtitleMode==='burn'&&burn) body.burnSubIndex=parseInt(burn.value,10);
+  const r=await fetch('/api/convert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json();
   if (d.error) { alert(d.error); return; }
   showTab('jobs'); loadJobs();
 }
 
 // ---- Batch ----
-async function probeForBatch(filePath) {
-  if (state.probeCache.has(filePath)) return state.probeCache.get(filePath);
-  try {
-    const r = await fetch('/api/probe?path=' + encodeURIComponent(filePath));
-    const d = await r.json();
-    if (d.error) return null;
-    state.probeCache.set(filePath, d);
-    return d;
-  } catch { return null; }
-}
-
+async function probeForBatch(p) { if (state.probeCache.has(p)) return state.probeCache.get(p); try { const r=await fetch('/api/probe?path='+encodeURIComponent(p)); const d=await r.json(); if (d.error) return null; state.probeCache.set(p,d); return d; } catch { return null; } }
 function estimateForBatchFile(probe, opts) {
   if (!probe) return null;
-  const v = probe.streams.find(s => s.codec_type === 'video');
-  if (!v) return null;
-  const duration = probe.format.duration || 0;
-  if (!duration) return null;
-
-  let width = v.width || 1920, height = v.height || 1080;
-  if (opts.maxHeight) {
-    const t = parseInt(opts.maxHeight, 10);
-    if (height > t) { width = Math.round(width * (t/height)); height = t; }
-  }
-  const videoKbps = estimateVideoBitrateKbps(opts.crf, width, height, v.codec_name);
-
-  // Figure out which audio tracks would be kept based on trackMode
-  const audioStreams = probe.streams.filter(s => s.codec_type === 'audio');
-  let keptAudio = [];
-  if (opts.trackMode === 'all') keptAudio = audioStreams;
-  else if (opts.trackMode === 'default') keptAudio = audioStreams.filter(s => s.default || s.language === 'eng' || s.language === 'und');
-  else if (opts.trackMode === 'video-only') keptAudio = audioStreams.filter(s => s.default);
-  if (!keptAudio.length && audioStreams.length) keptAudio = [audioStreams[0]];
-
-  const maxCh = keptAudio.reduce((m, s) => Math.max(m, s.channels || 0), 0);
-  const abKbps = Math.max(opts.audioBitrateBase, snapAudioBitrate(recommendAudioBitrate(maxCh)));
-  const audioKbps = keptAudio.length * abKbps;
-
-  const bytes = ((videoKbps + audioKbps) * 1000 / 8) * duration;
-  return { bytes, videoKbps: Math.round(videoKbps), audioKbps, audioTracks: keptAudio.length, duration };
+  const v=probe.streams.find(s=>s.codec_type==='video'); if (!v) return null;
+  const dur=probe.format.duration||0; if (!dur) return null;
+  let w=v.width||1920,h=v.height||1080;
+  if (opts.maxHeight) { const t=parseInt(opts.maxHeight,10); if (h>t){w=Math.round(w*(t/h));h=t;} }
+  const vk=estimateVideoBitrateKbps(opts.quality,w,h,v.codec_name,opts.encoder);
+  const aud=probe.streams.filter(s=>s.codec_type==='audio');
+  let kept=opts.trackMode==='all'?aud:opts.trackMode==='default'?aud.filter(s=>s.default||s.language==='eng'||s.language==='und'):aud.filter(s=>s.default);
+  if (!kept.length&&aud.length) kept=[aud[0]];
+  const mc=kept.reduce((m,s)=>Math.max(m,s.channels||0),0);
+  const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));
+  return { bytes:((vk+kept.length*ab)*1000/8)*dur };
 }
-
-function getBatchOpts() {
-  return {
-    crf: parseInt(document.getElementById('bCrf').value, 10),
-    preset: document.getElementById('bPreset').value,
-    audioBitrateBase: parseInt(document.getElementById('bAudioBitrate').value, 10),
-    maxHeight: document.getElementById('bMaxHeight').value || null,
-    trackMode: document.getElementById('bTrackMode').value,
-    subtitleMode: document.getElementById('bSubtitleMode').value
-  };
-}
-
+function getBatchOpts() { const e=document.getElementById('bencoder'); return { encoder:e?e.value:'cpu', quality:parseInt(document.getElementById('bCrf').value,10), preset:document.getElementById('bPreset').value, audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10), maxHeight:document.getElementById('bMaxHeight').value||null, trackMode:document.getElementById('bTrackMode').value, subtitleMode:document.getElementById('bSubtitleMode').value }; }
 async function updateBatchEstimates() {
-  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
-  const opts = getBatchOpts();
-  let totalIn = 0, totalOut = 0, estimatedCount = 0, unknownCount = 0;
-
+  const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v})); const opts=getBatchOpts();
+  let tIn=0,tOut=0,c=0,u=0;
   for (const f of files) {
-    totalIn += parseInt(f.size, 10) || 0;
-    const row = document.querySelector(`.queue-file[data-path="${CSS.escape(f.path)}"] .estimate-cell`);
+    tIn+=parseInt(f.size,10)||0;
+    const row=document.querySelector(`.queue-file[data-path="${CSS.escape(f.path)}"] .estimate-cell`);
     if (!row) continue;
-    const probe = state.probeCache.get(f.path);
-    if (!probe) { row.innerHTML = `<span style="color:var(--muted)">probing...</span>`; unknownCount++; continue; }
-    const est = estimateForBatchFile(probe, opts);
-    if (!est) { row.innerHTML = `<span style="color:var(--err)">?</span>`; unknownCount++; continue; }
-    const inSize = parseInt(f.size, 10) || 0;
-    const pct = inSize ? Math.round((1 - est.bytes/inSize) * 100) : 0;
-    const cls = pct >= 5 ? 'shrink' : (pct <= -5 ? 'grow' : '');
-    const sign = pct >= 0 ? '-' : '+';
-    row.innerHTML = `<b>${fmtBytes(est.bytes)}</b> <span class="${cls}" style="font-size:11px">${sign}${Math.abs(pct)}%</span>`;
-    totalOut += est.bytes;
-    estimatedCount++;
+    const probe=state.probeCache.get(f.path);
+    if (!probe) { row.innerHTML=`<span style="color:var(--muted)">probing...</span>`; u++; continue; }
+    const est=estimateForBatchFile(probe,opts);
+    if (!est) { row.innerHTML=`<span style="color:var(--err)">?</span>`; u++; continue; }
+    const inS=parseInt(f.size,10)||0; const pct=inS?Math.round((1-est.bytes/inS)*100):0;
+    const cls=pct>=5?'shrink':(pct<=-5?'grow':''); const sign=pct>=0?'-':'+';
+    row.innerHTML=`<b>${fmtBytes(est.bytes)}</b> <span class="${cls}" style="font-size:11px">${sign}${Math.abs(pct)}%</span>`;
+    tOut+=est.bytes; c++;
   }
-
-  const sumEl = document.getElementById('batchSummary');
-  if (sumEl) {
-    const savePct = totalIn ? Math.round((1 - totalOut/totalIn) * 100) : 0;
-    const cls = savePct >= 5 ? 'shrink' : (savePct <= -5 ? 'grow' : '');
-    const sign = savePct >= 0 ? '-' : '+';
-    sumEl.innerHTML = `
-      <div class="estimate-row"><span class="estimate-label">Files queued</span>
-        <span class="estimate-value">${files.length}</span></div>
-      <div class="estimate-row"><span class="estimate-label">Total source size</span>
-        <span class="estimate-value">${fmtBytes(totalIn)}</span></div>
-      <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
-        <span class="estimate-value">${estimatedCount ? fmtBytes(totalOut) : '—'} ${estimatedCount ? `<span class="${cls}" style="font-size:12px;margin-left:6px">${sign}${Math.abs(savePct)}%</span>` : ''}</span></div>
-      ${unknownCount ? `<div class="estimate-note">${unknownCount} file(s) still probing or unestimatable.</div>` : ''}
-    `;
+  const sum=document.getElementById('batchSummary');
+  if (sum) {
+    const sp=tIn?Math.round((1-tOut/tIn)*100):0; const cl=sp>=5?'shrink':(sp<=-5?'grow':''); const sg=sp>=0?'-':'+';
+    sum.innerHTML=`<div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(tIn)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${c?fmtBytes(tOut):'—'} ${c?`<span class="${cl}" style="font-size:12px;margin-left:6px">${sg}${Math.abs(sp)}%</span>`:''}</span></div>${u?`<div class="estimate-note">${u} file(s) still probing.</div>`:''}`;
   }
 }
-
-async function preprobeBatchFiles() {
-  const files = [...state.queue.keys()];
-  // Probe up to 3 at a time to not hammer the server
-  const queue = [...files];
-  const workers = Array(Math.min(3, queue.length)).fill(0).map(async () => {
-    while (queue.length) {
-      const p = queue.shift();
-      await probeForBatch(p);
-      updateBatchEstimates();
-    }
-  });
-  await Promise.all(workers);
-  updateBatchEstimates();
-}
+async function preprobeBatchFiles() { const q=[...state.queue.keys()]; const w=Array(Math.min(3,q.length)).fill(0).map(async()=>{ while (q.length){const p=q.shift(); await probeForBatch(p); updateBatchEstimates();} }); await Promise.all(w); updateBatchEstimates(); }
 
 function renderBatch() {
-  const el = document.getElementById('batchContent');
-  if (!state.queue.size) {
-    el.innerHTML = `<div class="empty">No files queued. Use the green checkboxes in the file list to add files.</div>`;
-    return;
-  }
-  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
-  const totalSize = files.reduce((s, f) => s + (parseInt(f.size, 10) || 0), 0);
-  el.innerHTML = `
-    <div class="estimate" id="batchSummary" style="margin-top:0;margin-bottom:14px">
-      <div class="estimate-row"><span class="estimate-label">Files queued</span>
-        <span class="estimate-value">${files.length}</span></div>
-      <div class="estimate-row"><span class="estimate-label">Total source size</span>
-        <span class="estimate-value">${fmtBytes(totalSize)}</span></div>
-      <div class="estimate-row"><span class="estimate-label">Estimated output size</span>
-        <span class="estimate-value"><span style="color:var(--muted)">probing files...</span></span></div>
-    </div>
-    <div id="queueList" style="margin-bottom:18px;max-height:360px;overflow-y:auto"></div>
-
-    <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Shared encode settings</div>
+  const el=document.getElementById('batchContent');
+  if (!state.queue.size) { el.innerHTML=`<div class="empty">No files queued.</div>`; return; }
+  const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));
+  const ts=files.reduce((s,f)=>s+(parseInt(f.size,10)||0),0);
+  el.innerHTML=`
+    <div class="estimate" id="batchSummary" style="margin-top:0;margin-bottom:14px"><div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(ts)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value"><span style="color:var(--muted)">probing...</span></span></div></div>
+    <div style="margin:8px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Encoder</div>
+    ${encoderTabsHTML('b')}
+    <div id="queueList" style="margin-bottom:18px;max-height:300px;overflow-y:auto"></div>
+    <div style="margin:8px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Shared encode settings</div>
     <div class="presets">
-      <button class="preset-btn" data-batch-preset="light"><b>Light</b> · CRF 22</button>
-      <button class="preset-btn active" data-batch-preset="balanced"><b>Balanced</b> · CRF 24</button>
-      <button class="preset-btn" data-batch-preset="shrink"><b>Shrink hard</b> · CRF 26</button>
-      <button class="preset-btn" data-batch-preset="hevc-shrink"><b>HEVC→H264 shrink</b> · CRF 25</button>
+      <button class="preset-btn" data-batch-preset="light"><b>Light</b> · Q 22</button>
+      <button class="preset-btn active" data-batch-preset="balanced"><b>Balanced</b> · Q 24</button>
+      <button class="preset-btn" data-batch-preset="shrink"><b>Shrink hard</b> · Q 26</button>
     </div>
-
     <div class="grid">
-      <label class="field">Quality (CRF) <input type="number" id="bCrf" value="24" min="14" max="30"></label>
-      <label class="field">Preset
-        <select id="bPreset">
-          <option>fast</option><option>medium</option><option selected>slow</option><option>slower</option>
-        </select>
-      </label>
-      <label class="field">Audio bitrate
-        <select id="bAudioBitrate">
-          <option value="128">128k</option>
-          <option value="192" selected>192k</option>
-          <option value="256">256k</option>
-          <option value="384">384k</option>
-        </select>
-        <span class="field-hint">Auto-scaled per file based on channel count</span>
-      </label>
-      <label class="field">Max height (downscale)
-        <select id="bMaxHeight">
-          <option value="">Keep original</option>
-          <option value="2160">2160p (4K)</option>
-          <option value="1080">1080p</option>
-          <option value="720">720p</option>
-        </select>
-      </label>
-      <label class="field">Track selection
-        <select id="bTrackMode">
-          <option value="default" selected>Keep default + English tracks</option>
-          <option value="all">Keep all tracks</option>
-          <option value="video-only">Video + default audio only</option>
-        </select>
-      </label>
-      <label class="field">Subtitles
-        <select id="bSubtitleMode">
-          <option value="soft" selected>Soft (if supported)</option>
-          <option value="none">Drop all</option>
-        </select>
-      </label>
+      <label class="field">Quality <input type="number" id="bCrf" value="24" min="14" max="35"></label>
+      <label class="field">Preset <select id="bPreset"><option>fast</option><option>medium</option><option selected>slow</option><option>slower</option></select></label>
+      <label class="field">Audio bitrate <select id="bAudioBitrate"><option value="128">128k</option><option value="192" selected>192k</option><option value="256">256k</option><option value="384">384k</option></select></label>
+      <label class="field">Max height <select id="bMaxHeight"><option value="">Keep original</option><option value="2160">2160p</option><option value="1080">1080p</option><option value="720">720p</option></select></label>
+      <label class="field">Track selection <select id="bTrackMode"><option value="default" selected>Default + English</option><option value="all">All tracks</option><option value="video-only">Video + default audio only</option></select></label>
+      <label class="field">Subtitles <select id="bSubtitleMode"><option value="soft" selected>Soft</option><option value="none">Drop all</option></select></label>
     </div>
-
-    <div style="margin-top:14px;padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;display:flex;gap:10px;align-items:flex-start">
-      <input type="checkbox" id="bReplaceOriginal" style="width:16px;height:16px;margin-top:2px;accent-color:var(--err)">
-      <label for="bReplaceOriginal" style="font-size:13px;cursor:pointer;flex:1">
-        <b style="color:var(--err)">Replace originals</b>
-        <div style="color:var(--muted);font-size:11px;margin-top:2px">For each successful conversion, move the new MP4 into the source folder and <b>delete the original</b>. Files that fail to convert are left untouched.</div>
-      </label>
-    </div>
-
+    <div class="option-box"><input type="checkbox" id="bResumable" style="accent-color:var(--accent)"><label for="bResumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Each file encoded in segments; can resume after restart. Subtitles dropped.</div></label></div>
+    <div class="option-box"><input type="checkbox" id="bReplaceOriginal" style="accent-color:var(--err)"><label for="bReplaceOriginal"><b style="color:var(--err)">Replace originals</b><div class="desc">Delete source for every successful conversion.</div></label></div>
     <div style="margin-top:18px;display:flex;gap:8px">
-      <button id="startBatchBtn" class="success">Start Batch Conversion</button>
+      <button id="startBatchBtn" class="success">Start Batch</button>
       <button class="ghost" id="clearBatchBtn">Clear queue</button>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
-      Each file is probed individually and gets sensible track selection. Jobs run one at a time (as configured by MAX_CONCURRENT).
-    </div>
   `;
-
-  const ql = document.getElementById('queueList');
-  ql.innerHTML = files.map(f => `
-    <div class="queue-file" data-path="${f.path}">
-      <span class="name">${f.name}</span>
-      <span style="color:var(--muted);font-size:11px;flex-shrink:0">${fmtBytes(f.size)}</span>
-      <span style="color:var(--muted);font-size:11px;flex-shrink:0">→</span>
-      <span class="estimate-cell" style="flex-shrink:0;min-width:100px;text-align:right;font-size:12px"><span style="color:var(--muted)">probing...</span></span>
-      <span class="x" data-path="${f.path}" title="Remove">×</span>
-    </div>
-  `).join('');
-  ql.querySelectorAll('.x').forEach(x => x.onclick = () => { state.queue.delete(x.dataset.path); browse(state.cwd); updateQueueUI(); });
-
-  document.querySelectorAll('[data-batch-preset]').forEach(b => {
-    b.onclick = () => {
-      const id = b.dataset.batchPreset;
-      document.querySelectorAll('[data-batch-preset]').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      const map = {
-        light: { crf:22, preset:'slow' },
-        balanced: { crf:24, preset:'slow' },
-        shrink: { crf:26, preset:'slow' },
-        'hevc-shrink': { crf:25, preset:'slow' }
-      };
-      const m = map[id];
-      document.getElementById('bCrf').value = m.crf;
-      document.getElementById('bPreset').value = m.preset;
-      updateBatchEstimates();
-    };
-  });
-
-  // Re-estimate on any setting change
-  ['bCrf','bPreset','bAudioBitrate','bMaxHeight','bTrackMode','bSubtitleMode'].forEach(id => {
-    const e = document.getElementById(id);
-    if (e) {
-      e.addEventListener('change', updateBatchEstimates);
-      if (e.tagName === 'INPUT') e.addEventListener('input', updateBatchEstimates);
-    }
-  });
-
-  document.getElementById('clearBatchBtn').onclick = () => { state.queue.clear(); browse(state.cwd); updateQueueUI(); };
-  document.getElementById('startBatchBtn').onclick = startBatch;
-
-  // Kick off probes
+  document.getElementById('queueList').innerHTML=files.map(f=>`<div class="queue-file" data-path="${f.path}"><span class="name">${f.name}</span><span style="color:var(--muted);font-size:11px">${fmtBytes(f.size)}</span><span style="color:var(--muted);font-size:11px">→</span><span class="estimate-cell" style="min-width:100px;text-align:right;font-size:12px"><span style="color:var(--muted)">probing...</span></span><span class="x" data-path="${f.path}">×</span></div>`).join('');
+  document.querySelectorAll('#queueList .x').forEach(x=>x.onclick=()=>{state.queue.delete(x.dataset.path);browse(state.cwd);updateQueueUI();});
+  wireEncoderTabs('b',()=>updateBatchEstimates());
+  document.querySelectorAll('[data-batch-preset]').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('[data-batch-preset]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); const m={light:{crf:22},balanced:{crf:24},shrink:{crf:26}}[b.dataset.batchPreset]; document.getElementById('bCrf').value=m.crf; updateBatchEstimates(); }; });
+  ['bCrf','bPreset','bAudioBitrate','bMaxHeight','bTrackMode','bSubtitleMode'].forEach(id=>{ const e=document.getElementById(id); if (e) { e.addEventListener('change',updateBatchEstimates); if (e.tagName==='INPUT') e.addEventListener('input',updateBatchEstimates); } });
+  document.getElementById('clearBatchBtn').onclick=()=>{state.queue.clear();browse(state.cwd);updateQueueUI();};
+  document.getElementById('startBatchBtn').onclick=startBatch;
   preprobeBatchFiles();
 }
 
 async function startBatch() {
-  const btn = document.getElementById('startBatchBtn');
-  btn.disabled = true; btn.textContent = 'Submitting...';
-  const replaceOriginal = document.getElementById('bReplaceOriginal').checked;
-  if (replaceOriginal && !confirm(`Are you sure? This will DELETE the original files for every successful conversion in this batch (${state.queue.size} files).`)) {
-    btn.disabled = false; btn.textContent = 'Start Batch Conversion';
-    return;
-  }
-  const opts = {
-    crf: parseInt(document.getElementById('bCrf').value, 10),
-    preset: document.getElementById('bPreset').value,
-    audioBitrateBase: parseInt(document.getElementById('bAudioBitrate').value, 10),
-    maxHeight: document.getElementById('bMaxHeight').value || null,
-    trackMode: document.getElementById('bTrackMode').value,
-    subtitleMode: document.getElementById('bSubtitleMode').value
-  };
-
-  const files = [...state.queue.entries()].map(([p, v]) => ({ path: p, ...v }));
-  let submitted = 0, failed = 0;
-  for (const f of files) {
+  const btn=document.getElementById('startBatchBtn'); btn.disabled=true; btn.textContent='Submitting...';
+  const repl=document.getElementById('bReplaceOriginal').checked;
+  if (repl && !confirm(`Delete original for every successful conversion (${state.queue.size} files)?`)) { btn.disabled=false; btn.textContent='Start Batch'; return; }
+  const resumable=document.getElementById('bResumable').checked;
+  const enc=document.getElementById('bencoder').value;
+  const q=parseInt(document.getElementById('bCrf').value,10);
+  const opts={ encoder:enc, crf:enc==='cpu'?q:20, hwQuality:enc==='cpu'?23:q, preset:document.getElementById('bPreset').value, audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10), maxHeight:document.getElementById('bMaxHeight').value||null, trackMode:document.getElementById('bTrackMode').value, subtitleMode:document.getElementById('bSubtitleMode').value };
+  const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));
+  let s=0,f=0;
+  for (const file of files) {
     try {
-      btn.textContent = `Submitting ${submitted+1}/${files.length}...`;
-      // Probe to get track list
-      const pr = await fetch('/api/probe?path=' + encodeURIComponent(f.path));
-      const probe = await pr.json();
-      if (probe.error) { failed++; continue; }
-
-      // Pick streams according to trackMode
-      const selected = [];
-      for (const s of probe.streams) {
-        if (s.codec_type === 'video') { selected.push(s.index); continue; }
-        if (s.codec_type === 'audio') {
-          if (opts.trackMode === 'all') selected.push(s.index);
-          else if (opts.trackMode === 'default' && (s.default || s.language === 'eng' || s.language === 'und')) selected.push(s.index);
-          else if (opts.trackMode === 'video-only' && s.default) selected.push(s.index);
-        }
-        if (s.codec_type === 'subtitle' && opts.subtitleMode === 'soft') {
-          if (opts.trackMode === 'all') selected.push(s.index);
-          else if (opts.trackMode === 'default' && (s.default || s.language === 'eng')) selected.push(s.index);
-        }
+      btn.textContent=`Submitting ${s+1}/${files.length}...`;
+      const probe=await probeForBatch(file.path); if (!probe) {f++;continue;}
+      const sel=[];
+      for (const st of probe.streams) {
+        if (st.codec_type==='video') {sel.push(st.index);continue;}
+        if (st.codec_type==='audio') { if (opts.trackMode==='all') sel.push(st.index); else if (opts.trackMode==='default'&&(st.default||st.language==='eng'||st.language==='und')) sel.push(st.index); else if (opts.trackMode==='video-only'&&st.default) sel.push(st.index); }
+        if (st.codec_type==='subtitle'&&opts.subtitleMode==='soft'&&!resumable) { if (opts.trackMode==='all') sel.push(st.index); else if (opts.trackMode==='default'&&(st.default||st.language==='eng')) sel.push(st.index); }
       }
-      // Ensure at least one audio track got picked
-      if (!selected.some(i => probe.streams.find(s => s.index === i && s.codec_type === 'audio'))) {
-        const firstAudio = probe.streams.find(s => s.codec_type === 'audio');
-        if (firstAudio) selected.push(firstAudio.index);
-      }
-
-      // Scale audio bitrate to max channel count among kept audio
-      const keptAudio = probe.streams.filter(s => selected.includes(s.index) && s.codec_type === 'audio');
-      const maxCh = keptAudio.reduce((m, s) => Math.max(m, s.channels || 0), 0);
-      const abKbps = Math.max(opts.audioBitrateBase, snapAudioBitrate(recommendAudioBitrate(maxCh)));
-
-      const body = {
-        inputPath: f.path,
-        selectedStreams: selected,
-        crf: opts.crf,
-        preset: opts.preset,
-        audioMode: 'auto',
-        audioBitrate: abKbps + 'k',
-        subtitleMode: opts.subtitleMode,
-        maxHeight: opts.maxHeight,
-        outputName: f.name.replace(/\.[^.]+$/, '') + '.mp4',
-        replaceOriginal: replaceOriginal
-      };
-      const r = await fetch('/api/convert', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (r.ok) submitted++; else failed++;
-    } catch { failed++; }
+      if (!sel.some(i=>probe.streams.find(s=>s.index===i&&s.codec_type==='audio'))) { const fa=probe.streams.find(s=>s.codec_type==='audio'); if (fa) sel.push(fa.index); }
+      const ka=probe.streams.filter(s=>sel.includes(s.index)&&s.codec_type==='audio');
+      const mc=ka.reduce((m,s)=>Math.max(m,s.channels||0),0);
+      const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));
+      const body={ inputPath:file.path, selectedStreams:sel, encoder:opts.encoder, crf:opts.crf, hwQuality:opts.hwQuality, preset:opts.preset, audioMode:'auto', audioBitrate:ab+'k', subtitleMode:resumable?'none':opts.subtitleMode, maxHeight:opts.maxHeight, outputName:file.name.replace(/\.[^.]+$/, '')+'.mp4', replaceOriginal:repl, resumable };
+      const r=await fetch('/api/convert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if (r.ok) s++; else f++;
+    } catch { f++; }
   }
-  btn.disabled = false; btn.textContent = 'Start Batch Conversion';
-  alert(`Queued ${submitted} job${submitted !== 1 ? 's' : ''}${failed ? `, ${failed} failed` : ''}.`);
-  state.queue.clear();
-  browse(state.cwd);
-  updateQueueUI();
-  showTab('jobs'); loadJobs();
+  btn.disabled=false; btn.textContent='Start Batch';
+  alert(`Queued ${s} job(s)${f?', '+f+' failed':''}.`);
+  state.queue.clear(); browse(state.cwd); updateQueueUI(); showTab('jobs'); loadJobs();
 }
 
-// ---- Jobs ----
+// ---- Jobs (active + recent) ----
+function jobCard(j, opts) {
+  opts = opts || {};
+  let sizeText;
+  if (j.outputSize) {
+    const pct=Math.round((1-j.outputSize/j.inputSize)*100), cls=pct>0?'shrink':'grow', sign=pct>0?'-':'+';
+    sizeText=`${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;
+  } else sizeText=fmtBytes(j.inputSize);
+  const encL=j.encoder==='qsv'?'QSV':j.encoder==='nvenc'?'NVENC':'CPU';
+  const repl=j.replacedOriginal?`<span style="color:var(--good);font-weight:600">✓ replaced</span>`:'';
+  const resBadge=j.resumable?`<span style="color:var(--accent-2);font-weight:600">⟲ resumable</span>`:'';
+  const segInfo=j.resumable&&j.segmentsTotal>1?`<span>seg ${j.segmentsDone}/${j.segmentsTotal}</span>`:'';
+  const canRestart=j.status==='interrupted'||j.status==='error'||j.status==='cancelled';
+  return `<div class="job">
+    <div class="job-head"><div class="job-name">${j.input.split('/').pop()}</div><span class="status ${j.status}">${j.status}</span></div>
+    <div class="bar"><div style="width:${j.progress||0}%"></div></div>
+    <div class="job-meta">
+      <span>${(j.progress||0).toFixed(1)}%</span>
+      ${segInfo}
+      ${j.encoder?`<span style="color:var(--accent-2)">${encL}</span>`:''}
+      ${resBadge}
+      ${j.speed?`<span>${j.speed}x</span>`:''}
+      ${j.fps?`<span>${j.fps} fps</span>`:''}
+      ${j.eta?`<span>ETA ${fmtDur(j.eta)}</span>`:''}
+      <span>${sizeText}</span>
+      ${repl}
+      ${j.error?`<span style="color:var(--err)">${j.error}</span>`:''}
+    </div>
+    <div style="margin-top:8px;display:flex;gap:6px">
+      ${j.status==='running'||j.status==='queued'?`<button class="ghost small" onclick="cancelJob('${j.id}')">Cancel</button>`:''}
+      ${canRestart?`<button class="ghost small" onclick="restartJob('${j.id}')">Restart${j.resumable?' (resume)':''}</button>`:''}
+      ${j.status!=='running'?`<button class="ghost small" onclick="removeJob('${j.id}')">Remove</button>`:''}
+      <button class="ghost small" onclick="showLogDetail('${j.id}')">View log</button>
+    </div>
+  </div>`;
+}
 function renderJobs() {
-  const el = document.getElementById('jobs');
-  if (!state.jobs.length) { el.innerHTML = '<div class="empty">No jobs yet.</div>'; return; }
-  el.innerHTML = state.jobs.map(j => {
-    const running = j.status === 'running';
-    let sizeText;
-    if (j.outputSize) {
-      const pct = Math.round((1 - j.outputSize/j.inputSize)*100);
-      const cls = pct > 0 ? 'shrink' : 'grow';
-      const sign = pct > 0 ? '-' : '+';
-      sizeText = `${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;
-    } else if (running) sizeText = `source: ${fmtBytes(j.inputSize)} (output size when done)`;
-    else sizeText = fmtBytes(j.inputSize);
-    const replacedBadge = j.replacedOriginal ? `<span style="color:var(--good);font-weight:600">✓ replaced original</span>` : '';
-    return `<div class="job">
-      <div class="job-head">
-        <div class="job-name">${j.input.split('/').pop()}</div>
-        <span class="status ${j.status}">${j.status}</span>
-      </div>
-      <div class="bar"><div style="width:${j.progress||0}%"></div></div>
-      <div class="job-meta">
-        <span>${(j.progress||0).toFixed(1)}%</span>
-        ${j.speed ? `<span>${j.speed}x</span>` : ''}
-        ${j.fps ? `<span>${j.fps} fps</span>` : ''}
-        ${j.eta ? `<span>ETA ${fmtDur(j.eta)}</span>` : ''}
-        <span>${sizeText}</span>
-        ${replacedBadge}
-        ${j.error ? `<span style="color:var(--err)">${j.error}</span>` : ''}
-      </div>
-      <div style="margin-top:8px;display:flex;gap:6px">
-        ${j.status === 'running' || j.status === 'queued' ? `<button class="ghost small" onclick="cancelJob('${j.id}')">Cancel</button>` : ''}
-        ${j.status !== 'running' ? `<button class="ghost small" onclick="removeJob('${j.id}')">Remove</button>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  const el=document.getElementById('jobs');
+  const active=state.jobs.filter(j=>j.status==='running'||j.status==='queued'||j.status==='interrupted');
+  const recent=state.jobs.filter(j=>j.status==='done'||j.status==='error'||j.status==='cancelled').slice(0,10);
+  if (!active.length && !recent.length) { el.innerHTML='<div class="empty">No jobs yet.</div>'; return; }
+  let html='';
+  if (active.length) html += active.map(j=>jobCard(j)).join('');
+  if (recent.length) html += `<div style="margin-top:14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Recent</div>` + recent.map(j=>jobCard(j)).join('');
+  el.innerHTML=html;
 }
+async function loadJobs() { const r=await fetch('/api/jobs'); state.jobs=await r.json(); renderJobs(); if (document.getElementById('tab-log').style.display!=='none') renderLogTab(); }
+async function cancelJob(id) { await fetch('/api/jobs/'+id+'/cancel',{method:'POST'}); loadJobs(); }
+async function removeJob(id) { await fetch('/api/jobs/'+id,{method:'DELETE'}); loadJobs(); }
+async function restartJob(id) { const r=await fetch('/api/jobs/'+id+'/restart',{method:'POST'}); const d=await r.json(); if (d.error) alert(d.error); loadJobs(); }
 
-async function loadJobs() { const r = await fetch('/api/jobs'); state.jobs = await r.json(); renderJobs(); }
-async function cancelJob(id) { await fetch('/api/jobs/' + id + '/cancel', {method:'POST'}); loadJobs(); }
-async function removeJob(id) { await fetch('/api/jobs/' + id, {method:'DELETE'}); loadJobs(); }
+// ---- Log tab ----
+async function showLogDetail(id) { state.openLogId=id; showTab('log'); renderLogTab(); }
+async function renderLogTab() {
+  const el=document.getElementById('logContent');
+  const all=state.jobs;
+  const total=all.length;
+  const done=all.filter(j=>j.status==='done').length;
+  const failed=all.filter(j=>j.status==='error').length;
+  const interrupted=all.filter(j=>j.status==='interrupted').length;
+  const totalSaved=all.filter(j=>j.status==='done'&&j.outputSize&&j.inputSize).reduce((s,j)=>s+(j.inputSize-j.outputSize),0);
+
+  let detail='';
+  if (state.openLogId) {
+    const j=state.jobs.find(x=>x.id===state.openLogId);
+    if (j) {
+      const r=await fetch('/api/jobs/'+state.openLogId+'/log');
+      const d=await r.json();
+      detail=`<div class="log-detail">
+        <h3>${j.input.split('/').pop()}</h3>
+        <div class="meta-row">
+          <div class="k">Status</div><div><span class="status ${j.status}">${j.status}</span></div>
+          <div class="k">Encoder</div><div>${j.encoder||'-'}</div>
+          <div class="k">Resumable</div><div>${j.resumable?'yes':'no'}</div>
+          <div class="k">Source path</div><div style="word-break:break-all">${j.input}</div>
+          <div class="k">Output path</div><div style="word-break:break-all">${j.finalPath||j.output}</div>
+          <div class="k">Source size</div><div>${fmtBytes(j.inputSize)}</div>
+          <div class="k">Output size</div><div>${j.outputSize?fmtBytes(j.outputSize)+' ('+(Math.round((1-j.outputSize/j.inputSize)*100))+'% smaller)':'-'}</div>
+          <div class="k">Duration</div><div>${fmtDur(j.duration)}</div>
+          <div class="k">Started</div><div>${fmtDate(j.startedAt)}</div>
+          <div class="k">Finished</div><div>${fmtDate(j.finishedAt)}</div>
+          ${j.error?`<div class="k">Error</div><div style="color:var(--err)">${j.error}</div>`:''}
+        </div>
+        <div class="log-toolbar">
+          <input class="log-search" id="logSearch" placeholder="Filter log..." />
+          <button class="ghost small" onclick="document.getElementById('logSearch').value='';filterLog()">Clear</button>
+          <button class="ghost small" onclick="state.openLogId=null;renderLogTab()">Close</button>
+        </div>
+        <pre class="log-pre" id="logPre">${(d.log||'(no log)').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</pre>
+      </div>`;
+    }
+  }
+
+  const list = all.length ? all.slice(0,200).map(j=>{
+    const ago = j.finishedAt?fmtAgo(j.finishedAt):(j.startedAt?fmtAgo(j.startedAt):fmtAgo(j.createdAt));
+    let trail='';
+    if (j.status==='done'&&j.outputSize) {
+      const pct=Math.round((1-j.outputSize/j.inputSize)*100);
+      trail=`<span class="${pct>0?'shrink':'grow'}">${pct>0?'-':'+'}${Math.abs(pct)}%</span>`;
+    }
+    return `<div class="log-row" onclick="showLogDetail('${j.id}')">
+      <span class="status ${j.status}" style="min-width:90px;text-align:center">${j.status}</span>
+      <span class="name">${j.input.split('/').pop()}</span>
+      ${trail}
+      <span class="when">${ago}</span>
+    </div>`;
+  }).join('') : '<div class="empty">No conversions logged yet.</div>';
+
+  el.innerHTML = `
+    <div class="log-stats">
+      <div class="stat-card"><div class="label">Total jobs</div><div class="value">${total}</div></div>
+      <div class="stat-card success"><div class="label">Successful</div><div class="value">${done}</div></div>
+      <div class="stat-card error"><div class="label">Failed</div><div class="value">${failed}</div></div>
+      <div class="stat-card interrupted"><div class="label">Interrupted</div><div class="value">${interrupted}</div></div>
+    </div>
+    ${totalSaved>0?`<div style="font-size:13px;color:var(--good);margin-bottom:14px">💾 Total space saved: <b>${fmtBytes(totalSaved)}</b></div>`:''}
+    ${detail}
+    <div style="margin-top:14px">${list}</div>
+  `;
+  const ls=document.getElementById('logSearch'); if (ls) ls.oninput=filterLog;
+}
+function filterLog() {
+  const q=document.getElementById('logSearch').value.toLowerCase();
+  const pre=document.getElementById('logPre'); if (!pre) return;
+  if (!q) { pre.style.opacity=1; return; }
+  // Simple highlight: dim non-matching lines
+  const lines=pre.textContent.split('\n');
+  pre.innerHTML=lines.map(l=>l.toLowerCase().includes(q)?`<span style="background:#3a3a1e">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`:`<span style="opacity:0.35">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`).join('\n');
+}
 
 function showTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.getElementById('tab-convert').style.display = name === 'convert' ? '' : 'none';
-  document.getElementById('tab-batch').style.display = name === 'batch' ? '' : 'none';
-  document.getElementById('tab-jobs').style.display = name === 'jobs' ? '' : 'none';
-  if (name === 'jobs') loadJobs();
-  if (name === 'batch') renderBatch();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  ['convert','batch','jobs','log'].forEach(n=>document.getElementById('tab-'+n).style.display=n===name?'':'none');
+  if (name==='jobs') loadJobs();
+  if (name==='batch') renderBatch();
+  if (name==='log') { loadJobs(); }
 }
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => showTab(t.dataset.tab));
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
-const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-const ws = new WebSocket(`${proto}://${location.host}/ws`);
-ws.onmessage = ev => {
-  const msg = JSON.parse(ev.data);
-  if (msg.type === 'hello') state.jobs = msg.jobs;
-  if (msg.type === 'job') {
-    const i = state.jobs.findIndex(j => j.id === msg.job.id);
-    if (i >= 0) state.jobs[i] = msg.job; else state.jobs.unshift(msg.job);
-  }
-  if (msg.type === 'progress') { const j = state.jobs.find(x => x.id === msg.id); if (j) Object.assign(j, msg); }
-  if (msg.type === 'removed') state.jobs = state.jobs.filter(j => j.id !== msg.id);
-  renderJobs();
+function updateHwPills() { const set=(id,on)=>{document.getElementById(id).classList.toggle('active',on);}; set('hwCpu',true); set('hwQsv',state.caps.qsv); set('hwNvenc',state.caps.nvenc); }
+
+const proto=location.protocol==='https:'?'wss':'ws';
+const ws=new WebSocket(`${proto}://${location.host}/ws`);
+ws.onmessage=ev=>{
+  const m=JSON.parse(ev.data);
+  if (m.type==='hello') { state.jobs=m.jobs; if (m.capabilities){state.caps=m.capabilities;updateHwPills();} renderJobs(); }
+  if (m.type==='job') { const i=state.jobs.findIndex(j=>j.id===m.job.id); if (i>=0) state.jobs[i]=m.job; else state.jobs.unshift(m.job); renderJobs(); }
+  if (m.type==='progress') { const j=state.jobs.find(x=>x.id===m.id); if (j) Object.assign(j,m); renderJobs(); }
+  if (m.type==='removed') { state.jobs=state.jobs.filter(j=>j.id!==m.id); renderJobs(); }
 };
 
-fetch('/api/health').then(r => r.json()).then(h => {
-  document.getElementById('health').textContent = `${h.mediaRoot} → ${h.outputDir}`;
-});
+fetch('/api/capabilities').then(r=>r.json()).then(c=>{state.caps=c;updateHwPills();});
+fetch('/api/health').then(r=>r.json()).then(h=>{document.getElementById('health').textContent=`${h.mediaRoot} → ${h.outputDir}`;});
 browse('');
 </script>
 </body>

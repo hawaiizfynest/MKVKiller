@@ -1,25 +1,24 @@
 services:
   mkvforge:
-    build: .
-    # After the GitHub Actions build succeeds you can swap to the prebuilt image:
-    # image: ghcr.io/hawaiizfynest/mkvforge:latest
+    image: ghcr.io/hawaiizfynest/mkvforge:latest
     container_name: mkvforge
     restart: unless-stopped
     ports:
       - "8089:8080"
-environment:
+    environment:
       - MEDIA_ROOT=/media
       - OUTPUT_DIR=/media/converted
+      - DATA_DIR=/data
       - MAX_CONCURRENT=1
       - PUID=1000
       - PGID=0
-      - RUN_AS_ROOT=1          # ← add this
+      - RUN_AS_ROOT=1
       - TZ=America/Denver
     volumes:
-      # QuTS Hero shared-folder paths. Use the symlink form ( /share/<ShareName> )
-      # unless you have a reason to use the raw pool path.
-      # Examples for TS-h973AX on QuTS Hero:
-      #   /share/Multimedia                  (symlink, recommended)
-      #   /share/ZFS530_DATA/Multimedia      (raw ZFS pool path, if symlink missing)
-      #   /share/CACHEDEV1_DATA/Multimedia   (fallback on some QuTS builds)
+      # Source media
       - /share/Multimedia:/media
+      # Persistent log database + segment scratch (survives container restarts)
+      - mkvforge_data:/data
+
+volumes:
+  mkvforge_data:

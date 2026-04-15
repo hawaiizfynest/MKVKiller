@@ -3,20 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MKVForge</title>
+<title>MKVKiller</title>
 <style>
-:root { --bg:#0f1115; --panel:#171a21; --panel-2:#1f232c; --border:#2a2f3a; --text:#e6e8ee; --muted:#8b93a7; --accent:#5b8cff; --accent-2:#7aa2ff; --good:#3ecf8e; --warn:#ffb020; --err:#ff5c5c; }
+/* ---- Theme variables ---- */
+:root, [data-theme="blue"] {
+  --bg:#0f1115; --panel:#171a21; --panel-2:#1f232c; --border:#2a2f3a;
+  --text:#e6e8ee; --muted:#8b93a7; --accent:#5b8cff; --accent-2:#7aa2ff;
+  --good:#3ecf8e; --warn:#ffb020; --err:#ff5c5c;
+  --accent-glow:rgba(91,140,255,0.12);
+}
+[data-theme="red"] {
+  --accent:#ff4d5c; --accent-2:#ff7a85; --accent-glow:rgba(255,77,92,0.12);
+}
+[data-theme="green"] {
+  --accent:#3ecf8e; --accent-2:#6be6ad; --accent-glow:rgba(62,207,142,0.12);
+}
 * { box-sizing:border-box; }
 body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
 header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); background:var(--panel); gap:14px; }
 header h1 { font-size:18px; margin:0; letter-spacing:0.3px; }
 header h1 span { color:var(--accent-2); }
+.header-right { display:flex; gap:8px; align-items:center; }
 .hw-pill { font-size:11px; padding:3px 8px; border-radius:10px; background:var(--panel-2); border:1px solid var(--border); color:var(--muted); }
 .hw-pill.active { color:var(--good); border-color:var(--good); }
+.theme-btn { width:22px; height:22px; border-radius:50%; border:2px solid var(--border); cursor:pointer; transition:transform 0.15s; }
+.theme-btn:hover { transform:scale(1.2); }
+.theme-btn.active { border-color:var(--text); box-shadow:0 0 6px var(--accent-glow); }
+.theme-btn[data-theme="blue"] { background:#5b8cff; }
+.theme-btn[data-theme="red"] { background:#ff4d5c; }
+.theme-btn[data-theme="green"] { background:#3ecf8e; }
 main { display:grid; grid-template-columns:380px 1fr; gap:0; height:calc(100vh - 53px); }
 .sidebar { border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; display:flex; flex-direction:column; }
 .sidebar-actions { padding:8px 10px; border-bottom:1px solid var(--border); display:flex; gap:6px; align-items:center; flex-wrap:wrap; position:sticky; top:0; background:var(--panel); z-index:5; }
 .sidebar-actions .count { font-size:11px; color:var(--muted); margin-left:auto; }
+.sort-bar { padding:6px 10px; border-bottom:1px solid var(--border); display:flex; gap:4px; align-items:center; background:var(--panel); font-size:11px; color:var(--muted); }
+.sort-btn { padding:3px 8px; background:var(--panel-2); border:1px solid var(--border); color:var(--muted); border-radius:4px; font-size:11px; cursor:pointer; }
+.sort-btn:hover { color:var(--text); border-color:var(--accent); }
+.sort-btn.active { color:var(--accent); border-color:var(--accent); background:var(--accent-glow); }
 .content { overflow-y:auto; padding:20px; }
 .panel { background:var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; }
 .panel h2 { margin:0 0 12px; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; }
@@ -24,7 +47,7 @@ main { display:grid; grid-template-columns:380px 1fr; gap:0; height:calc(100vh -
 .file-list { list-style:none; margin:0; padding:0; }
 .file-list li { padding:6px 10px; border-bottom:1px solid var(--border); cursor:pointer; display:flex; align-items:center; gap:8px; font-size:13px; }
 .file-list li:hover { background:var(--panel-2); }
-.file-list li.selected { background:#243049; }
+.file-list li.selected { background:var(--accent-glow); }
 .file-list li.queued { background:#1e2a1e; }
 .file-list .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 .file-list .size { color:var(--muted); font-size:11px; flex-shrink:0; }
@@ -69,7 +92,6 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 .tabs { display:flex; gap:4px; margin-bottom:14px; }
 .tab { padding:7px 14px; background:var(--panel-2); border:1px solid var(--border); color:var(--muted); cursor:pointer; border-radius:6px; font-size:13px; }
 .tab.active { color:var(--text); background:var(--panel); border-color:var(--accent); }
-.sizes { font-size:11px; color:var(--muted); }
 .shrink { color:var(--good); font-weight:600; }
 .grow { color:var(--warn); font-weight:600; }
 .presets { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
@@ -82,7 +104,7 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 .estimate-label { color:var(--muted); font-size:12px; }
 .estimate-value { font-weight:600; font-size:14px; }
 .estimate-note { color:var(--muted); font-size:11px; margin-top:8px; padding-top:8px; border-top:1px solid #2d4066; }
-.advice { color:var(--warn); font-size:12px; margin-top:8px; display:flex; gap:6px; align-items:flex-start; }
+.advice { color:var(--warn); font-size:12px; margin-top:8px; }
 .queue-file { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--panel); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; font-size:13px; }
 .queue-file .x { color:var(--err); cursor:pointer; font-size:18px; line-height:1; padding:0 4px; }
 .queue-file .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -121,8 +143,12 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
 </head>
 <body>
 <header>
-  <h1>MKV<span>Forge</span></h1>
-  <div style="display:flex; gap:8px; align-items:center">
+  <h1>MKV<span>Killer</span></h1>
+  <div class="header-right">
+    <div class="theme-btn active" data-theme="blue" title="Blue theme"></div>
+    <div class="theme-btn" data-theme="red" title="Red theme"></div>
+    <div class="theme-btn" data-theme="green" title="Green theme"></div>
+    <span style="width:1px;height:20px;background:var(--border);margin:0 4px"></span>
     <span class="hw-pill" id="hwCpu">CPU</span>
     <span class="hw-pill" id="hwQsv">QSV</span>
     <span class="hw-pill" id="hwNvenc">NVENC</span>
@@ -136,6 +162,12 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
       <button class="small ghost" id="clearQueueBtn">Clear</button>
       <button class="small success" id="batchBtn" style="display:none">Batch → <span id="batchCount">0</span></button>
       <span class="count" id="queueCount"></span>
+    </div>
+    <div class="sort-bar">
+      Sort:
+      <div class="sort-btn active" data-sort="name">Name</div>
+      <div class="sort-btn" data-sort="size-desc">Size ↓</div>
+      <div class="sort-btn" data-sort="size-asc">Size ↑</div>
     </div>
     <div class="path-bar"><div class="crumbs" id="crumbs"></div></div>
     <ul class="file-list" id="files"></ul>
@@ -154,113 +186,125 @@ label.field input, label.field select { padding:7px 9px; background:var(--panel)
   </div>
 </main>
 <script>
-const state = { cwd:'', selected:null, probe:null, jobs:[], queue:new Map(), currentFiles:[], probeCache:new Map(), caps:{cpu:true,qsv:false,nvenc:false}, openLogId:null };
+// ---- Theme ----
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+  try { localStorage.setItem('mkvkiller-theme', t); } catch {}
+}
+document.querySelectorAll('.theme-btn').forEach(b => b.onclick = () => setTheme(b.dataset.theme));
+try { const saved = localStorage.getItem('mkvkiller-theme'); if (saved) setTheme(saved); } catch {}
+
+// ---- State ----
+const state = { cwd:'', selected:null, probe:null, jobs:[], queue:new Map(), currentFiles:[], currentItems:[], probeCache:new Map(), caps:{cpu:true,qsv:false,nvenc:false}, openLogId:null, sortMode:'name' };
 
 function fmtBytes(n) { if (!n) return '-'; const u=['B','KB','MB','GB','TB']; let i=0; while (n>=1024&&i<u.length-1){n/=1024;i++;} return n.toFixed(n>=100?0:n>=10?1:2)+' '+u[i]; }
 function fmtDur(s) { if (!s) return '-'; s=Math.floor(s); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60; return h?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`; }
-function fmtAgo(ts) { if (!ts) return '-'; const d = Date.now() - ts; const m = Math.floor(d/60000); if (m<1) return 'just now'; if (m<60) return m + 'm ago'; const h = Math.floor(m/60); if (h<24) return h + 'h ago'; return Math.floor(h/24) + 'd ago'; }
+function fmtAgo(ts) { if (!ts) return '-'; const d=Date.now()-ts; const m=Math.floor(d/60000); if (m<1) return 'just now'; if (m<60) return m+'m ago'; const h=Math.floor(m/60); if (h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
 function fmtDate(ts) { if (!ts) return '-'; return new Date(ts).toLocaleString(); }
 
 function recommendAudioBitrate(c) { if (!c) return 192; if (c<=1) return 96; if (c===2) return 192; if (c<=6) return 384; return 512; }
-function snapAudioBitrate(k) { const o=[128,192,256,384]; let b=o[0],bd=Infinity; for (const x of o) { const d=Math.abs(x-k); if (d<bd){bd=d;b=x;} } return b; }
+function snapAudioBitrate(k) { const o=[128,192,256,384]; let b=o[0],bd=Infinity; for (const x of o){const d=Math.abs(x-k);if(d<bd){bd=d;b=x;}} return b; }
 
-function estimateVideoBitrateKbps(crf, w, h, src, enc) {
+function estimateVideoBitrateKbps(crf,w,h,src,enc) {
   const ref={14:18000,16:13000,18:9000,19:7500,20:6000,21:5000,22:4200,23:3500,24:2900,25:2400,26:2000,27:1700,28:1400,29:1200,30:1000};
-  const c=Math.max(14,Math.min(30,crf)); const lo=Math.floor(c),hi=Math.ceil(c),f=c-lo;
+  const c=Math.max(14,Math.min(30,crf)),lo=Math.floor(c),hi=Math.ceil(c),f=c-lo;
   const base=ref[lo]*(1-f)+ref[hi]*f; let s=base*((w||1920)*(h||1080)/(1920*1080));
   if (src==='hevc'||src==='h265') s*=1.1;
   if (enc==='qsv') s*=1.20; else if (enc==='nvenc') s*=1.15;
   return s;
 }
-
 function currentEncoder() { const e=document.getElementById('encoder'); return e?e.value:'cpu'; }
-function currentQuality() { const e=currentEncoder(); return parseInt(document.getElementById(e==='cpu'?'crf':'hwQuality').value,10); }
-
+function currentQuality() { return parseInt(document.getElementById(currentEncoder()==='cpu'?'crf':'hwQuality').value,10); }
 function estimateOutputSize() {
   if (!state.probe) return null;
   const checks=[...document.querySelectorAll('#tracks input[type=checkbox]')];
   const kv=checks.find(c=>c.checked&&c.dataset.type==='video'); if (!kv) return null;
   const v=state.probe.streams.find(s=>s.index===parseInt(kv.dataset.idx,10)); if (!v) return null;
   const dur=state.probe.format.duration||0; if (!dur) return null;
-  const enc=currentEncoder(), q=currentQuality();
-  const mh=document.getElementById('maxHeight').value;
-  let w=v.width||1920, h=v.height||1080;
-  if (mh) { const t=parseInt(mh,10); if (h>t) {w=Math.round(w*(t/h));h=t;} }
+  const enc=currentEncoder(),q=currentQuality(),mh=document.getElementById('maxHeight').value;
+  let w=v.width||1920,h=v.height||1080;
+  if (mh){const t=parseInt(mh,10);if(h>t){w=Math.round(w*(t/h));h=t;}}
   const vk=estimateVideoBitrateKbps(q,w,h,v.codec_name,enc);
-  const am=document.getElementById('audioMode').value;
-  const ab=parseInt(document.getElementById('audioBitrate').value,10);
-  let ak=0;
-  for (const c of checks.filter(c=>c.checked&&c.dataset.type==='audio')) {
-    const s=state.probe.streams.find(st=>st.index===parseInt(c.dataset.idx,10));
-    if (am==='copy'&&s&&s.bit_rate) ak+=parseInt(s.bit_rate,10)/1000; else ak+=ab;
-  }
-  return { bytes:((vk+ak)*1000/8)*dur, videoKbps:Math.round(vk), audioKbps:Math.round(ak) };
+  const am=document.getElementById('audioMode').value,ab=parseInt(document.getElementById('audioBitrate').value,10);
+  let ak=0; for (const c of checks.filter(c=>c.checked&&c.dataset.type==='audio')){const s=state.probe.streams.find(st=>st.index===parseInt(c.dataset.idx,10));if(am==='copy'&&s&&s.bit_rate) ak+=parseInt(s.bit_rate,10)/1000; else ak+=ab;}
+  return {bytes:((vk+ak)*1000/8)*dur,videoKbps:Math.round(vk),audioKbps:Math.round(ak)};
 }
-
 function updateEstimate() {
   const el=document.getElementById('estimate'); if (!el) return;
-  const est=estimateOutputSize(); if (!est) { el.style.display='none'; return; }
+  const est=estimateOutputSize(); if (!est){el.style.display='none';return;}
   el.style.display='block';
-  const ins=state.probe.format.size;
-  const d=ins?((1-est.bytes/ins)*100):0;
-  const dc=d>=5?'shrink':(d<=-5?'grow':''), dt=d>=0?`-${d.toFixed(0)}%`:`+${Math.abs(d).toFixed(0)}%`;
-  const enc=currentEncoder(), encL=enc==='cpu'?'x264 (CPU)':(enc==='qsv'?'Intel QSV':'NVIDIA NVENC');
-  let adv='';
-  if (d<0) adv=`<div class="advice">⚠️ Output will be <b>larger</b> than source.</div>`;
-  else if (d<10) adv=`<div class="advice">⚠️ Only minor savings expected.</div>`;
-  el.innerHTML=`
-    <div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${fmtBytes(est.bytes)} <span class="${dc}" style="font-size:12px;margin-left:6px">${dt}</span></span></div>
-    <div class="estimate-row"><span class="estimate-label">Source size</span><span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(ins)}</span></div>
-    <div class="estimate-row"><span class="estimate-label">Encoder</span><span class="estimate-value" style="font-weight:500">${encL}</span></div>
-    <div class="estimate-row"><span class="estimate-label">Target bitrate</span><span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps + ${est.audioKbps} kbps audio</span></div>
-    ${adv}`;
+  const ins=state.probe.format.size,d=ins?((1-est.bytes/ins)*100):0;
+  const dc=d>=5?'shrink':(d<=-5?'grow':''),dt=d>=0?`-${d.toFixed(0)}%`:`+${Math.abs(d).toFixed(0)}%`;
+  const enc=currentEncoder(),encL=enc==='cpu'?'x264 (CPU)':(enc==='qsv'?'Intel QSV':'NVIDIA NVENC');
+  let adv=''; if (d<0) adv=`<div class="advice">⚠️ Output will be <b>larger</b> than source.</div>`; else if (d<10) adv=`<div class="advice">⚠️ Only minor savings expected.</div>`;
+  el.innerHTML=`<div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${fmtBytes(est.bytes)} <span class="${dc}" style="font-size:12px;margin-left:6px">${dt}</span></span></div><div class="estimate-row"><span class="estimate-label">Source size</span><span class="estimate-value" style="color:var(--muted);font-weight:500">${fmtBytes(ins)}</span></div><div class="estimate-row"><span class="estimate-label">Encoder</span><span class="estimate-value" style="font-weight:500">${encL}</span></div><div class="estimate-row"><span class="estimate-label">Target bitrate</span><span class="estimate-value" style="font-weight:500">${(est.videoKbps/1000).toFixed(1)} Mbps + ${est.audioKbps} kbps audio</span></div>${adv}`;
 }
 
 function getRecommendations(probe) {
   const v=probe.streams.find(s=>s.codec_type==='video');
-  const sc=v?v.codec_name:'h264', sh=v?v.height:1080, isH=sc==='hevc'||sc==='h265';
+  const sc=v?v.codec_name:'h264',sh=v?v.height:1080,isH=sc==='hevc'||sc==='h265';
   const recs=[];
-  if (isH) { recs.push({id:'archival',name:'Archival',crf:20,preset:'slow',maxHeight:''}); recs.push({id:'balanced',name:'Balanced',crf:23,preset:'slow',maxHeight:''}); recs.push({id:'shrink',name:'Shrink hard',crf:25,preset:'slow',maxHeight:''}); }
-  else { recs.push({id:'light',name:'Light',crf:22,preset:'slow',maxHeight:''}); recs.push({id:'balanced',name:'Balanced',crf:24,preset:'slow',maxHeight:''}); recs.push({id:'shrink',name:'Shrink hard',crf:26,preset:'slow',maxHeight:''}); }
-  if (sh && sh>1440) recs.push({id:'downscale',name:'1080p',crf:23,preset:'slow',maxHeight:'1080'});
+  if (isH){recs.push({id:'archival',name:'Archival',crf:20,preset:'slow',maxHeight:''});recs.push({id:'balanced',name:'Balanced',crf:23,preset:'slow',maxHeight:''});recs.push({id:'shrink',name:'Shrink hard',crf:25,preset:'slow',maxHeight:''});}
+  else {recs.push({id:'light',name:'Light',crf:22,preset:'slow',maxHeight:''});recs.push({id:'balanced',name:'Balanced',crf:24,preset:'slow',maxHeight:''});recs.push({id:'shrink',name:'Shrink hard',crf:26,preset:'slow',maxHeight:''});}
+  if (sh&&sh>1440) recs.push({id:'downscale',name:'1080p',crf:23,preset:'slow',maxHeight:'1080'});
   return recs;
 }
 function applyPreset(p) {
   const e=currentEncoder();
   if (e==='cpu') document.getElementById('crf').value=p.crf; else document.getElementById('hwQuality').value=p.crf;
-  document.getElementById('preset').value=p.preset;
-  document.getElementById('maxHeight').value=p.maxHeight;
+  document.getElementById('preset').value=p.preset; document.getElementById('maxHeight').value=p.maxHeight;
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.dataset.id===p.id));
   updateEstimate();
 }
 
+// ---- Sort ----
+function sortItems(items) {
+  const dirs = items.filter(i => i.dir);
+  const files = items.filter(i => !i.dir);
+  dirs.sort((a,b) => a.name.localeCompare(b.name));
+  if (state.sortMode === 'size-desc') files.sort((a,b) => (b.size||0) - (a.size||0));
+  else if (state.sortMode === 'size-asc') files.sort((a,b) => (a.size||0) - (b.size||0));
+  else files.sort((a,b) => a.name.localeCompare(b.name));
+  return [...dirs, ...files];
+}
+document.querySelectorAll('.sort-btn').forEach(b => {
+  b.onclick = () => {
+    state.sortMode = b.dataset.sort;
+    document.querySelectorAll('.sort-btn').forEach(x => x.classList.toggle('active', x.dataset.sort === state.sortMode));
+    renderFiles(state.currentItems);
+  };
+});
+
+// ---- Browse / Files ----
 async function browse(p) {
   const r=await fetch('/api/browse?path='+encodeURIComponent(p||'')); const d=await r.json();
-  if (d.error) { alert(d.error); return; }
-  state.cwd=d.cwd;
+  if (d.error){alert(d.error);return;}
+  state.cwd=d.cwd; state.currentItems=d.items;
   state.currentFiles=d.items.filter(i=>!i.dir&&i.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/));
   renderFiles(d.items); renderCrumbs();
 }
 function renderCrumbs() {
   const parts=state.cwd?state.cwd.split('/'):[]; const el=document.getElementById('crumbs');
-  let html=`<a data-path="">📁 /media</a>`, cum='';
-  for (const p of parts) { cum=cum?cum+'/'+p:p; html+=` / <a data-path="${cum}">${p}</a>`; }
+  let html=`<a data-path="">📁 /media</a>`,cum='';
+  for (const p of parts){cum=cum?cum+'/'+p:p;html+=` / <a data-path="${cum}">${p}</a>`;}
   el.innerHTML=html; el.querySelectorAll('a').forEach(a=>a.onclick=()=>browse(a.dataset.path));
 }
 function renderFiles(items) {
+  const sorted = sortItems(items);
   const ul=document.getElementById('files'); ul.innerHTML='';
-  if (state.cwd) { const parent=state.cwd.split('/').slice(0,-1).join('/'); const li=document.createElement('li'); li.innerHTML=`<span class="qbox-placeholder"></span><span class="name">⬆️ ..</span>`; li.onclick=()=>browse(parent); ul.appendChild(li); }
-  for (const it of items) {
+  if (state.cwd){const parent=state.cwd.split('/').slice(0,-1).join('/');const li=document.createElement('li');li.innerHTML=`<span class="qbox-placeholder"></span><span class="name">⬆️ ..</span>`;li.onclick=()=>browse(parent);ul.appendChild(li);}
+  for (const it of sorted) {
     const li=document.createElement('li');
     const isMedia=!it.dir&&it.name.toLowerCase().match(/\.(mkv|mp4|avi|mov|webm|ts|m4v)$/);
     const icon=it.dir?'📁':(isMedia?'🎬':'📄');
     const isQ=state.queue.has(it.path); if (isQ) li.classList.add('queued');
     const cb=isMedia?`<input type="checkbox" class="qbox" data-path="${it.path}" data-name="${it.name}" data-size="${it.size}" ${isQ?'checked':''}>`:`<span class="qbox-placeholder"></span>`;
     li.innerHTML=`${cb}<span class="name">${icon} ${it.name}</span><span class="size">${it.dir?'':fmtBytes(it.size)}</span>`;
-    li.querySelector('.name').onclick=(ev)=>{ ev.stopPropagation(); if (it.dir) browse(it.path); else selectFile(it,ev); };
-    li.onclick=(ev)=>{ if (ev.target.classList.contains('qbox')) return; if (it.dir) browse(it.path); else selectFile(it,ev); };
+    li.querySelector('.name').onclick=(ev)=>{ev.stopPropagation();if(it.dir) browse(it.path); else selectFile(it,ev);};
+    li.onclick=(ev)=>{if(ev.target.classList.contains('qbox')) return; if(it.dir) browse(it.path); else selectFile(it,ev);};
     const c=li.querySelector('.qbox');
-    if (c) c.onclick=(ev)=>{ ev.stopPropagation(); if (c.checked) state.queue.set(it.path,{name:it.name,size:it.size}); else state.queue.delete(it.path); li.classList.toggle('queued',c.checked); updateQueueUI(); };
+    if (c) c.onclick=(ev)=>{ev.stopPropagation();if(c.checked) state.queue.set(it.path,{name:it.name,size:it.size}); else state.queue.delete(it.path); li.classList.toggle('queued',c.checked); updateQueueUI();};
     ul.appendChild(li);
   }
 }
@@ -272,11 +316,11 @@ function updateQueueUI() {
   document.getElementById('batchTabCount').textContent=n?`(${n})`:'';
   if (document.getElementById('tab-batch').style.display!=='none') renderBatch();
 }
-document.getElementById('selectAllBtn').onclick=()=>{ for (const f of state.currentFiles) state.queue.set(f.path,{name:f.name,size:f.size}); browse(state.cwd); updateQueueUI(); };
-document.getElementById('clearQueueBtn').onclick=()=>{ state.queue.clear(); browse(state.cwd); updateQueueUI(); };
+document.getElementById('selectAllBtn').onclick=()=>{for (const f of state.currentFiles) state.queue.set(f.path,{name:f.name,size:f.size}); browse(state.cwd); updateQueueUI();};
+document.getElementById('clearQueueBtn').onclick=()=>{state.queue.clear();browse(state.cwd);updateQueueUI();};
 document.getElementById('batchBtn').onclick=()=>showTab('batch');
 
-async function selectFile(file, ev) {
+async function selectFile(file,ev) {
   state.selected=file;
   document.querySelectorAll('.file-list li').forEach(l=>l.classList.remove('selected'));
   const li=ev&&ev.currentTarget&&ev.currentTarget.tagName==='LI'?ev.currentTarget:(ev&&ev.target.closest&&ev.target.closest('li'));
@@ -284,8 +328,8 @@ async function selectFile(file, ev) {
   showTab('convert');
   const panel=document.getElementById('selectedPanel');
   panel.innerHTML=`<h2>${file.name}</h2><div class="empty">Probing tracks...</div>`;
-  const r=await fetch('/api/probe?path='+encodeURIComponent(file.path)); const d=await r.json();
-  if (d.error) { panel.innerHTML=`<h2>${file.name}</h2><div class="empty" style="color:var(--err)">${d.error}</div>`; return; }
+  const r=await fetch('/api/probe?path='+encodeURIComponent(file.path));const d=await r.json();
+  if (d.error){panel.innerHTML=`<h2>${file.name}</h2><div class="empty" style="color:var(--err)">${d.error}</div>`;return;}
   state.probe=d; renderProbe(file,d);
 }
 
@@ -293,17 +337,16 @@ function encoderTabsHTML(prefix) {
   const opts=[{id:'cpu',name:'CPU (x264)',desc:'best quality',enabled:true},{id:'qsv',name:'Intel QSV',desc:state.caps.qsv?'fast, iGPU':'not available',enabled:state.caps.qsv},{id:'nvenc',name:'NVIDIA NVENC',desc:state.caps.nvenc?'fast, dGPU':'not available',enabled:state.caps.nvenc}];
   return `<div class="encoder-tabs">${opts.map(o=>`<div class="enc-opt ${o.enabled?'':'disabled'} ${o.id==='cpu'?'active':''}" data-enc="${o.id}" data-prefix="${prefix}"><b>${o.name}</b><span>${o.desc}</span></div>`).join('')}<input type="hidden" id="${prefix}encoder" value="cpu"></div>`;
 }
-function wireEncoderTabs(prefix, onChange) {
+function wireEncoderTabs(prefix,onChange) {
   document.querySelectorAll(`.enc-opt[data-prefix="${prefix}"]`).forEach(el=>{
-    el.onclick=()=>{ if (el.classList.contains('disabled')) return; document.querySelectorAll(`.enc-opt[data-prefix="${prefix}"]`).forEach(x=>x.classList.remove('active')); el.classList.add('active'); document.getElementById(prefix+'encoder').value=el.dataset.enc; if (onChange) onChange(el.dataset.enc); };
+    el.onclick=()=>{if(el.classList.contains('disabled')) return; document.querySelectorAll(`.enc-opt[data-prefix="${prefix}"]`).forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById(prefix+'encoder').value=el.dataset.enc;if(onChange) onChange(el.dataset.enc);};
   });
 }
 
-function renderProbe(file, data) {
+function renderProbe(file,data) {
   const panel=document.getElementById('selectedPanel');
   const subs=data.streams.filter(s=>s.codec_type==='subtitle');
-  const v=data.streams.find(s=>s.codec_type==='video');
-  const sc=v?v.codec_name:'?'; const recs=getRecommendations(data);
+  const v=data.streams.find(s=>s.codec_type==='video'); const sc=v?v.codec_name:'?'; const recs=getRecommendations(data);
   const aud=data.streams.filter(s=>s.codec_type==='audio');
   const mc=aud.reduce((m,s)=>Math.max(m,s.channels||0),0);
   const ras=snapAudioBitrate(recommendAudioBitrate(mc));
@@ -311,152 +354,83 @@ function renderProbe(file, data) {
 
   panel.innerHTML=`
     <h2>${file.name}</h2>
-    <div class="sizes">${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · source codec: <b style="color:var(--text)">${sc}</b>${v&&v.width?` · ${v.width}×${v.height}`:''}</div>
-    ${audSummary?`<div class="sizes" style="margin-top:4px">${audSummary}</div>`:''}
-
+    <div style="font-size:11px;color:var(--muted)">${fmtBytes(data.format.size)} · ${fmtDur(data.format.duration)} · codec: <b style="color:var(--text)">${sc}</b>${v&&v.width?` · ${v.width}×${v.height}`:''}</div>
+    ${audSummary?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${audSummary}</div>`:''}
     <div style="margin:16px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Encoder</div>
     ${encoderTabsHTML('')}
-
     <div style="margin:14px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Recommended settings</div>
     <div class="presets" id="presets">${recs.map(r=>`<button class="preset-btn" data-id="${r.id}"><b>${r.name}</b> · CRF ${r.crf}${r.maxHeight?` · ${r.maxHeight}p`:''}</button>`).join('')}</div>
-
     <div style="margin:14px 0 8px;font-size:13px;color:var(--muted)">Tracks (check to keep)</div>
     <div id="tracks"></div>
-
     <div style="margin-top:18px" class="grid">
       <label class="field" id="crfField">Quality (CRF) <input type="number" id="crf" value="20" min="14" max="30"></label>
       <label class="field" id="hwField" style="display:none">Quality (HW) <input type="number" id="hwQuality" value="23" min="15" max="35"><span class="field-hint">18=high · 23=balanced · 28=small</span></label>
       <label class="field">Preset <select id="preset"><option>ultrafast</option><option>superfast</option><option>veryfast</option><option>faster</option><option>fast</option><option>medium</option><option selected>slow</option><option>slower</option><option>veryslow</option></select></label>
-      <label class="field">Audio <select id="audioMode"><option value="auto" selected>Auto (AAC re-encode)</option><option value="copy">Copy</option><option value="aac">Force AAC</option></select></label>
-      <label class="field">Audio bitrate <select id="audioBitrate"><option value="128">128k</option><option value="192">192k</option><option value="256">256k</option><option value="384">384k</option></select><span class="field-hint">Recommended: <b>${ras}k</b> (${mc||'?'}-ch source)</span></label>
+      <label class="field">Audio <select id="audioMode"><option value="auto" selected>Auto (AAC)</option><option value="copy">Copy</option><option value="aac">Force AAC</option></select></label>
+      <label class="field">Audio bitrate <select id="audioBitrate"><option value="128">128k</option><option value="192">192k</option><option value="256">256k</option><option value="384">384k</option></select><span class="field-hint">Rec: <b>${ras}k</b> (${mc||'?'}-ch)</span></label>
       <label class="field">Subtitles <select id="subtitleMode"><option value="soft" selected>Soft (mov_text)</option><option value="burn">Burn-in</option><option value="none">Drop</option></select></label>
       <label class="field">Max height <select id="maxHeight"><option value="">Keep original</option><option value="2160">2160p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option></select></label>
-      <label class="field" style="grid-column:span 2">Output filename <input type="text" id="outputName" value="${file.name.replace(/\.[^.]+$/, '')}.mp4"></label>
+      <label class="field" style="grid-column:span 2">Output filename <input type="text" id="outputName" value="${file.name.replace(/\.[^.]+$/,'')}.mp4"></label>
     </div>
-
-    <div class="option-box">
-      <input type="checkbox" id="resumable" style="accent-color:var(--accent)">
-      <label for="resumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Encode in 10-minute segments. If the container restarts mid-conversion, it picks up where it left off. Subtitle tracks are dropped in this mode.</div></label>
-    </div>
-    <div class="option-box">
-      <input type="checkbox" id="replaceOriginal" style="accent-color:var(--err)">
-      <label for="replaceOriginal"><b style="color:var(--err)">Replace original file</b><div class="desc">Move new MP4 into source folder and delete the original after successful conversion.</div></label>
-    </div>
-
+    <div class="option-box"><input type="checkbox" id="resumable" style="accent-color:var(--accent)"><label for="resumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Encode in 10-min segments. Picks up where it left off after restarts. Subtitles dropped in this mode.</div></label></div>
+    <div class="option-box"><input type="checkbox" id="replaceOriginal" style="accent-color:var(--err)"><label for="replaceOriginal"><b style="color:var(--err)">Replace original file</b><div class="desc">Move new MP4 into source folder and delete the original.</div></label></div>
     <div id="burnPick" style="display:none;margin-top:10px"></div>
     <div class="estimate" id="estimate" style="display:none"></div>
-
-    <div style="margin-top:16px;display:flex;gap:8px">
-      <button id="convertBtn">Start Conversion</button>
-      <button class="ghost" id="refreshBtn">Re-probe</button>
-    </div>
+    <div style="margin-top:16px;display:flex;gap:8px"><button id="convertBtn">Start Conversion</button><button class="ghost" id="refreshBtn">Re-probe</button></div>
   `;
   document.getElementById('audioBitrate').value=String(ras);
-
   const tracksEl=document.getElementById('tracks');
   for (const s of data.streams) {
     const t=['video','audio','subtitle'].includes(s.codec_type)?s.codec_type:'other';
     let info=`<strong>${s.codec_name||'?'}</strong>`;
     if (s.codec_type==='video'&&s.width) info+=` · ${s.width}×${s.height}`;
-    if (s.codec_type==='audio') { info+=` · ${s.channels||'?'}ch ${s.channel_layout||''}`; if (s.bit_rate) info+=` · <b style="color:var(--text)">${Math.round(s.bit_rate/1000)} kbps</b>`; info+=` <span class="rec-badge">rec ${snapAudioBitrate(recommendAudioBitrate(s.channels))}k</span>`; }
-    info+=` · lang: ${s.language}`;
-    if (s.title) info+=` · "${s.title}"`;
-    if (s.default) info+=' · default';
+    if (s.codec_type==='audio'){info+=` · ${s.channels||'?'}ch ${s.channel_layout||''}`;if(s.bit_rate) info+=` · <b style="color:var(--text)">${Math.round(s.bit_rate/1000)} kbps</b>`; info+=` <span class="rec-badge">rec ${snapAudioBitrate(recommendAudioBitrate(s.channels))}k</span>`;}
+    info+=` · lang: ${s.language}`; if(s.title) info+=` · "${s.title}"`; if(s.default) info+=' · default';
     const def=s.codec_type==='video'||(s.codec_type==='audio'&&s.default)||(s.codec_type==='audio'&&s.language==='eng')||(s.codec_type==='subtitle'&&s.default);
     const row=document.createElement('div'); row.className='track';
     row.innerHTML=`<input type="checkbox" data-idx="${s.index}" data-type="${s.codec_type}" ${def?'checked':''}><span class="badge ${t}">${t}</span><span class="meta">#${s.index} ${info}</span>`;
     tracksEl.appendChild(row);
   }
-
-  wireEncoderTabs('', (e)=>{ document.getElementById('crfField').style.display=e==='cpu'?'':'none'; document.getElementById('hwField').style.display=e==='cpu'?'none':''; updateEstimate(); });
-  document.querySelectorAll('.preset-btn').forEach(btn=>{ btn.onclick=()=>{ const r=recs.find(x=>x.id===btn.dataset.id); if (r) applyPreset(r); }; });
-  ['crf','hwQuality','preset','audioMode','audioBitrate','subtitleMode','maxHeight'].forEach(id=>{ const el=document.getElementById(id); if (el) { el.addEventListener('change',updateEstimate); if (el.tagName==='INPUT') el.addEventListener('input',updateEstimate); } });
+  wireEncoderTabs('',(e)=>{document.getElementById('crfField').style.display=e==='cpu'?'':'none';document.getElementById('hwField').style.display=e==='cpu'?'none':'';updateEstimate();});
+  document.querySelectorAll('.preset-btn').forEach(btn=>{btn.onclick=()=>{const r=recs.find(x=>x.id===btn.dataset.id);if(r) applyPreset(r);};});
+  ['crf','hwQuality','preset','audioMode','audioBitrate','subtitleMode','maxHeight'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('change',updateEstimate);if(el.tagName==='INPUT') el.addEventListener('input',updateEstimate);}});
   document.querySelectorAll('#tracks input[type=checkbox]').forEach(c=>c.addEventListener('change',updateEstimate));
-  document.getElementById('subtitleMode').onchange=()=>{ const ss=document.getElementById('subtitleMode'); const pk=document.getElementById('burnPick'); if (ss.value==='burn'&&subs.length) { pk.style.display='block'; pk.innerHTML=`<label class="field">Subtitle to burn <select id="burnSubIndex">${subs.map(s=>`<option value="${s.index}">#${s.index} ${s.codec_name} (${s.language})${s.title?' — '+s.title:''}</option>`).join('')}</select></label>`; } else pk.style.display='none'; updateEstimate(); };
-  document.getElementById('refreshBtn').onclick=()=>{ fetch('/api/probe?path='+encodeURIComponent(file.path)).then(r=>r.json()).then(d=>{ if (!d.error){state.probe=d;renderProbe(file,d);} }); };
+  document.getElementById('subtitleMode').onchange=()=>{const ss=document.getElementById('subtitleMode');const pk=document.getElementById('burnPick');if(ss.value==='burn'&&subs.length){pk.style.display='block';pk.innerHTML=`<label class="field">Subtitle to burn <select id="burnSubIndex">${subs.map(s=>`<option value="${s.index}">#${s.index} ${s.codec_name} (${s.language})${s.title?' — '+s.title:''}</option>`).join('')}</select></label>`;}else pk.style.display='none';updateEstimate();};
+  document.getElementById('refreshBtn').onclick=()=>{fetch('/api/probe?path='+encodeURIComponent(file.path)).then(r=>r.json()).then(d=>{if(!d.error){state.probe=d;renderProbe(file,d);}});};
   document.getElementById('convertBtn').onclick=()=>startConvert(file);
-
-  const dp=recs.find(r=>r.id==='balanced')||recs[0]; if (dp) applyPreset(dp); else updateEstimate();
+  const dp=recs.find(r=>r.id==='balanced')||recs[0]; if(dp) applyPreset(dp); else updateEstimate();
 }
 
 async function startConvert(file) {
   const checks=[...document.querySelectorAll('#tracks input[type=checkbox]')];
   const sel=checks.filter(c=>c.checked).map(c=>parseInt(c.dataset.idx,10));
-  if (!sel.length) { alert('Select at least one track.'); return; }
-  if (!checks.some(c=>c.checked&&c.dataset.type==='video')) { alert('Need at least one video track.'); return; }
+  if (!sel.length){alert('Select at least one track.');return;}
+  if (!checks.some(c=>c.checked&&c.dataset.type==='video')){alert('Need at least one video track.');return;}
   const repl=document.getElementById('replaceOriginal').checked;
-  if (repl && !confirm(`This will DELETE "${file.name}" after conversion. Continue?`)) return;
+  if (repl&&!confirm(`This will DELETE "${file.name}" after conversion. Continue?`)) return;
   const enc=currentEncoder();
-  const body={ inputPath:file.path, selectedStreams:sel, encoder:enc,
-    crf:parseInt(document.getElementById('crf').value,10), hwQuality:parseInt(document.getElementById('hwQuality').value,10),
-    preset:document.getElementById('preset').value, audioMode:document.getElementById('audioMode').value,
-    audioBitrate:document.getElementById('audioBitrate').value+'k', subtitleMode:document.getElementById('subtitleMode').value,
-    maxHeight:document.getElementById('maxHeight').value||null, outputName:document.getElementById('outputName').value,
-    replaceOriginal:repl, resumable:document.getElementById('resumable').checked };
-  const burn=document.getElementById('burnSubIndex'); if (body.subtitleMode==='burn'&&burn) body.burnSubIndex=parseInt(burn.value,10);
+  const body={inputPath:file.path,selectedStreams:sel,encoder:enc,crf:parseInt(document.getElementById('crf').value,10),hwQuality:parseInt(document.getElementById('hwQuality').value,10),preset:document.getElementById('preset').value,audioMode:document.getElementById('audioMode').value,audioBitrate:document.getElementById('audioBitrate').value+'k',subtitleMode:document.getElementById('subtitleMode').value,maxHeight:document.getElementById('maxHeight').value||null,outputName:document.getElementById('outputName').value,replaceOriginal:repl,resumable:document.getElementById('resumable').checked};
+  const burn=document.getElementById('burnSubIndex');if(body.subtitleMode==='burn'&&burn) body.burnSubIndex=parseInt(burn.value,10);
   const r=await fetch('/api/convert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json();
-  if (d.error) { alert(d.error); return; }
-  showTab('jobs'); loadJobs();
+  const d=await r.json(); if(d.error){alert(d.error);return;} showTab('jobs');loadJobs();
 }
 
 // ---- Batch ----
-async function probeForBatch(p) { if (state.probeCache.has(p)) return state.probeCache.get(p); try { const r=await fetch('/api/probe?path='+encodeURIComponent(p)); const d=await r.json(); if (d.error) return null; state.probeCache.set(p,d); return d; } catch { return null; } }
-function estimateForBatchFile(probe, opts) {
-  if (!probe) return null;
-  const v=probe.streams.find(s=>s.codec_type==='video'); if (!v) return null;
-  const dur=probe.format.duration||0; if (!dur) return null;
-  let w=v.width||1920,h=v.height||1080;
-  if (opts.maxHeight) { const t=parseInt(opts.maxHeight,10); if (h>t){w=Math.round(w*(t/h));h=t;} }
-  const vk=estimateVideoBitrateKbps(opts.quality,w,h,v.codec_name,opts.encoder);
-  const aud=probe.streams.filter(s=>s.codec_type==='audio');
-  let kept=opts.trackMode==='all'?aud:opts.trackMode==='default'?aud.filter(s=>s.default||s.language==='eng'||s.language==='und'):aud.filter(s=>s.default);
-  if (!kept.length&&aud.length) kept=[aud[0]];
-  const mc=kept.reduce((m,s)=>Math.max(m,s.channels||0),0);
-  const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));
-  return { bytes:((vk+kept.length*ab)*1000/8)*dur };
-}
-function getBatchOpts() { const e=document.getElementById('bencoder'); return { encoder:e?e.value:'cpu', quality:parseInt(document.getElementById('bCrf').value,10), preset:document.getElementById('bPreset').value, audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10), maxHeight:document.getElementById('bMaxHeight').value||null, trackMode:document.getElementById('bTrackMode').value, subtitleMode:document.getElementById('bSubtitleMode').value }; }
-async function updateBatchEstimates() {
-  const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v})); const opts=getBatchOpts();
-  let tIn=0,tOut=0,c=0,u=0;
-  for (const f of files) {
-    tIn+=parseInt(f.size,10)||0;
-    const row=document.querySelector(`.queue-file[data-path="${CSS.escape(f.path)}"] .estimate-cell`);
-    if (!row) continue;
-    const probe=state.probeCache.get(f.path);
-    if (!probe) { row.innerHTML=`<span style="color:var(--muted)">probing...</span>`; u++; continue; }
-    const est=estimateForBatchFile(probe,opts);
-    if (!est) { row.innerHTML=`<span style="color:var(--err)">?</span>`; u++; continue; }
-    const inS=parseInt(f.size,10)||0; const pct=inS?Math.round((1-est.bytes/inS)*100):0;
-    const cls=pct>=5?'shrink':(pct<=-5?'grow':''); const sign=pct>=0?'-':'+';
-    row.innerHTML=`<b>${fmtBytes(est.bytes)}</b> <span class="${cls}" style="font-size:11px">${sign}${Math.abs(pct)}%</span>`;
-    tOut+=est.bytes; c++;
-  }
-  const sum=document.getElementById('batchSummary');
-  if (sum) {
-    const sp=tIn?Math.round((1-tOut/tIn)*100):0; const cl=sp>=5?'shrink':(sp<=-5?'grow':''); const sg=sp>=0?'-':'+';
-    sum.innerHTML=`<div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(tIn)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${c?fmtBytes(tOut):'—'} ${c?`<span class="${cl}" style="font-size:12px;margin-left:6px">${sg}${Math.abs(sp)}%</span>`:''}</span></div>${u?`<div class="estimate-note">${u} file(s) still probing.</div>`:''}`;
-  }
-}
-async function preprobeBatchFiles() { const q=[...state.queue.keys()]; const w=Array(Math.min(3,q.length)).fill(0).map(async()=>{ while (q.length){const p=q.shift(); await probeForBatch(p); updateBatchEstimates();} }); await Promise.all(w); updateBatchEstimates(); }
+async function probeForBatch(p){if(state.probeCache.has(p)) return state.probeCache.get(p); try{const r=await fetch('/api/probe?path='+encodeURIComponent(p));const d=await r.json();if(d.error) return null;state.probeCache.set(p,d);return d;}catch{return null;}}
+function estimateForBatchFile(probe,opts){if(!probe) return null;const v=probe.streams.find(s=>s.codec_type==='video');if(!v) return null;const dur=probe.format.duration||0;if(!dur) return null;let w=v.width||1920,h=v.height||1080;if(opts.maxHeight){const t=parseInt(opts.maxHeight,10);if(h>t){w=Math.round(w*(t/h));h=t;}}const vk=estimateVideoBitrateKbps(opts.quality,w,h,v.codec_name,opts.encoder);const aud=probe.streams.filter(s=>s.codec_type==='audio');let kept=opts.trackMode==='all'?aud:opts.trackMode==='default'?aud.filter(s=>s.default||s.language==='eng'||s.language==='und'):aud.filter(s=>s.default);if(!kept.length&&aud.length) kept=[aud[0]];const mc=kept.reduce((m,s)=>Math.max(m,s.channels||0),0);const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));return {bytes:((vk+kept.length*ab)*1000/8)*dur};}
+function getBatchOpts(){const e=document.getElementById('bencoder');return{encoder:e?e.value:'cpu',quality:parseInt(document.getElementById('bCrf').value,10),preset:document.getElementById('bPreset').value,audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10),maxHeight:document.getElementById('bMaxHeight').value||null,trackMode:document.getElementById('bTrackMode').value,subtitleMode:document.getElementById('bSubtitleMode').value};}
+async function updateBatchEstimates(){const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));const opts=getBatchOpts();let tIn=0,tOut=0,c=0,u=0;for(const f of files){tIn+=parseInt(f.size,10)||0;const row=document.querySelector(`.queue-file[data-path="${CSS.escape(f.path)}"] .estimate-cell`);if(!row) continue;const probe=state.probeCache.get(f.path);if(!probe){row.innerHTML=`<span style="color:var(--muted)">probing...</span>`;u++;continue;}const est=estimateForBatchFile(probe,opts);if(!est){row.innerHTML=`<span style="color:var(--err)">?</span>`;u++;continue;}const inS=parseInt(f.size,10)||0;const pct=inS?Math.round((1-est.bytes/inS)*100):0;const cls=pct>=5?'shrink':(pct<=-5?'grow':'');const sign=pct>=0?'-':'+';row.innerHTML=`<b>${fmtBytes(est.bytes)}</b> <span class="${cls}" style="font-size:11px">${sign}${Math.abs(pct)}%</span>`;tOut+=est.bytes;c++;}const sum=document.getElementById('batchSummary');if(sum){const sp=tIn?Math.round((1-tOut/tIn)*100):0;const cl=sp>=5?'shrink':(sp<=-5?'grow':'');const sg=sp>=0?'-':'+';sum.innerHTML=`<div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(tIn)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value">${c?fmtBytes(tOut):'—'} ${c?`<span class="${cl}" style="font-size:12px;margin-left:6px">${sg}${Math.abs(sp)}%</span>`:''}</span></div>${u?`<div class="estimate-note">${u} file(s) still probing.</div>`:''}`}}
+async function preprobeBatchFiles(){const q=[...state.queue.keys()];const w=Array(Math.min(3,q.length)).fill(0).map(async()=>{while(q.length){const p=q.shift();await probeForBatch(p);updateBatchEstimates();}});await Promise.all(w);updateBatchEstimates();}
 
-function renderBatch() {
+function renderBatch(){
   const el=document.getElementById('batchContent');
-  if (!state.queue.size) { el.innerHTML=`<div class="empty">No files queued.</div>`; return; }
+  if (!state.queue.size){el.innerHTML=`<div class="empty">No files queued.</div>`;return;}
   const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));
   const ts=files.reduce((s,f)=>s+(parseInt(f.size,10)||0),0);
-  el.innerHTML=`
-    <div class="estimate" id="batchSummary" style="margin-top:0;margin-bottom:14px"><div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(ts)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value"><span style="color:var(--muted)">probing...</span></span></div></div>
-    <div style="margin:8px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Encoder</div>
-    ${encoderTabsHTML('b')}
+  el.innerHTML=`<div class="estimate" id="batchSummary" style="margin-top:0;margin-bottom:14px"><div class="estimate-row"><span class="estimate-label">Files queued</span><span class="estimate-value">${files.length}</span></div><div class="estimate-row"><span class="estimate-label">Total source</span><span class="estimate-value">${fmtBytes(ts)}</span></div><div class="estimate-row"><span class="estimate-label">Estimated output</span><span class="estimate-value"><span style="color:var(--muted)">probing...</span></span></div></div>
+    <div style="margin:8px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Encoder</div>${encoderTabsHTML('b')}
     <div id="queueList" style="margin-bottom:18px;max-height:300px;overflow-y:auto"></div>
-    <div style="margin:8px 0 6px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Shared encode settings</div>
-    <div class="presets">
-      <button class="preset-btn" data-batch-preset="light"><b>Light</b> · Q 22</button>
-      <button class="preset-btn active" data-batch-preset="balanced"><b>Balanced</b> · Q 24</button>
-      <button class="preset-btn" data-batch-preset="shrink"><b>Shrink hard</b> · Q 26</button>
-    </div>
+    <div class="presets"><button class="preset-btn" data-batch-preset="light"><b>Light</b> · Q 22</button><button class="preset-btn active" data-batch-preset="balanced"><b>Balanced</b> · Q 24</button><button class="preset-btn" data-batch-preset="shrink"><b>Shrink hard</b> · Q 26</button></div>
     <div class="grid">
       <label class="field">Quality <input type="number" id="bCrf" value="24" min="14" max="35"></label>
       <label class="field">Preset <select id="bPreset"><option>fast</option><option>medium</option><option selected>slow</option><option>slower</option></select></label>
@@ -465,208 +439,76 @@ function renderBatch() {
       <label class="field">Track selection <select id="bTrackMode"><option value="default" selected>Default + English</option><option value="all">All tracks</option><option value="video-only">Video + default audio only</option></select></label>
       <label class="field">Subtitles <select id="bSubtitleMode"><option value="soft" selected>Soft</option><option value="none">Drop all</option></select></label>
     </div>
-    <div class="option-box"><input type="checkbox" id="bResumable" style="accent-color:var(--accent)"><label for="bResumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Each file encoded in segments; can resume after restart. Subtitles dropped.</div></label></div>
+    <div class="option-box"><input type="checkbox" id="bResumable" style="accent-color:var(--accent)"><label for="bResumable"><b style="color:var(--accent-2)">Resumable encoding</b><div class="desc">Each file encoded in segments; resumes after restart. Subtitles dropped.</div></label></div>
     <div class="option-box"><input type="checkbox" id="bReplaceOriginal" style="accent-color:var(--err)"><label for="bReplaceOriginal"><b style="color:var(--err)">Replace originals</b><div class="desc">Delete source for every successful conversion.</div></label></div>
-    <div style="margin-top:18px;display:flex;gap:8px">
-      <button id="startBatchBtn" class="success">Start Batch</button>
-      <button class="ghost" id="clearBatchBtn">Clear queue</button>
-    </div>
-  `;
+    <div style="margin-top:18px;display:flex;gap:8px"><button id="startBatchBtn" class="success">Start Batch</button><button class="ghost" id="clearBatchBtn">Clear queue</button></div>`;
   document.getElementById('queueList').innerHTML=files.map(f=>`<div class="queue-file" data-path="${f.path}"><span class="name">${f.name}</span><span style="color:var(--muted);font-size:11px">${fmtBytes(f.size)}</span><span style="color:var(--muted);font-size:11px">→</span><span class="estimate-cell" style="min-width:100px;text-align:right;font-size:12px"><span style="color:var(--muted)">probing...</span></span><span class="x" data-path="${f.path}">×</span></div>`).join('');
   document.querySelectorAll('#queueList .x').forEach(x=>x.onclick=()=>{state.queue.delete(x.dataset.path);browse(state.cwd);updateQueueUI();});
   wireEncoderTabs('b',()=>updateBatchEstimates());
-  document.querySelectorAll('[data-batch-preset]').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('[data-batch-preset]').forEach(x=>x.classList.remove('active')); b.classList.add('active'); const m={light:{crf:22},balanced:{crf:24},shrink:{crf:26}}[b.dataset.batchPreset]; document.getElementById('bCrf').value=m.crf; updateBatchEstimates(); }; });
-  ['bCrf','bPreset','bAudioBitrate','bMaxHeight','bTrackMode','bSubtitleMode'].forEach(id=>{ const e=document.getElementById(id); if (e) { e.addEventListener('change',updateBatchEstimates); if (e.tagName==='INPUT') e.addEventListener('input',updateBatchEstimates); } });
+  document.querySelectorAll('[data-batch-preset]').forEach(b=>{b.onclick=()=>{document.querySelectorAll('[data-batch-preset]').forEach(x=>x.classList.remove('active'));b.classList.add('active');const m={light:{crf:22},balanced:{crf:24},shrink:{crf:26}}[b.dataset.batchPreset];document.getElementById('bCrf').value=m.crf;updateBatchEstimates();};});
+  ['bCrf','bPreset','bAudioBitrate','bMaxHeight','bTrackMode','bSubtitleMode'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('change',updateBatchEstimates);if(e.tagName==='INPUT') e.addEventListener('input',updateBatchEstimates);}});
   document.getElementById('clearBatchBtn').onclick=()=>{state.queue.clear();browse(state.cwd);updateQueueUI();};
   document.getElementById('startBatchBtn').onclick=startBatch;
   preprobeBatchFiles();
 }
 
-async function startBatch() {
-  const btn=document.getElementById('startBatchBtn'); btn.disabled=true; btn.textContent='Submitting...';
-  const repl=document.getElementById('bReplaceOriginal').checked;
-  if (repl && !confirm(`Delete original for every successful conversion (${state.queue.size} files)?`)) { btn.disabled=false; btn.textContent='Start Batch'; return; }
-  const resumable=document.getElementById('bResumable').checked;
-  const enc=document.getElementById('bencoder').value;
-  const q=parseInt(document.getElementById('bCrf').value,10);
-  const opts={ encoder:enc, crf:enc==='cpu'?q:20, hwQuality:enc==='cpu'?23:q, preset:document.getElementById('bPreset').value, audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10), maxHeight:document.getElementById('bMaxHeight').value||null, trackMode:document.getElementById('bTrackMode').value, subtitleMode:document.getElementById('bSubtitleMode').value };
-  const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));
-  let s=0,f=0;
-  for (const file of files) {
-    try {
-      btn.textContent=`Submitting ${s+1}/${files.length}...`;
-      const probe=await probeForBatch(file.path); if (!probe) {f++;continue;}
-      const sel=[];
-      for (const st of probe.streams) {
-        if (st.codec_type==='video') {sel.push(st.index);continue;}
-        if (st.codec_type==='audio') { if (opts.trackMode==='all') sel.push(st.index); else if (opts.trackMode==='default'&&(st.default||st.language==='eng'||st.language==='und')) sel.push(st.index); else if (opts.trackMode==='video-only'&&st.default) sel.push(st.index); }
-        if (st.codec_type==='subtitle'&&opts.subtitleMode==='soft'&&!resumable) { if (opts.trackMode==='all') sel.push(st.index); else if (opts.trackMode==='default'&&(st.default||st.language==='eng')) sel.push(st.index); }
-      }
-      if (!sel.some(i=>probe.streams.find(s=>s.index===i&&s.codec_type==='audio'))) { const fa=probe.streams.find(s=>s.codec_type==='audio'); if (fa) sel.push(fa.index); }
-      const ka=probe.streams.filter(s=>sel.includes(s.index)&&s.codec_type==='audio');
-      const mc=ka.reduce((m,s)=>Math.max(m,s.channels||0),0);
-      const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));
-      const body={ inputPath:file.path, selectedStreams:sel, encoder:opts.encoder, crf:opts.crf, hwQuality:opts.hwQuality, preset:opts.preset, audioMode:'auto', audioBitrate:ab+'k', subtitleMode:resumable?'none':opts.subtitleMode, maxHeight:opts.maxHeight, outputName:file.name.replace(/\.[^.]+$/, '')+'.mp4', replaceOriginal:repl, resumable };
-      const r=await fetch('/api/convert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if (r.ok) s++; else f++;
-    } catch { f++; }
-  }
-  btn.disabled=false; btn.textContent='Start Batch';
-  alert(`Queued ${s} job(s)${f?', '+f+' failed':''}.`);
-  state.queue.clear(); browse(state.cwd); updateQueueUI(); showTab('jobs'); loadJobs();
-}
+async function startBatch(){const btn=document.getElementById('startBatchBtn');btn.disabled=true;btn.textContent='Submitting...';const repl=document.getElementById('bReplaceOriginal').checked;if(repl&&!confirm(`Delete original for every successful conversion (${state.queue.size} files)?`)){btn.disabled=false;btn.textContent='Start Batch';return;}const resumable=document.getElementById('bResumable').checked;const enc=document.getElementById('bencoder').value;const q=parseInt(document.getElementById('bCrf').value,10);const opts={encoder:enc,crf:enc==='cpu'?q:20,hwQuality:enc==='cpu'?23:q,preset:document.getElementById('bPreset').value,audioBitrateBase:parseInt(document.getElementById('bAudioBitrate').value,10),maxHeight:document.getElementById('bMaxHeight').value||null,trackMode:document.getElementById('bTrackMode').value,subtitleMode:document.getElementById('bSubtitleMode').value};const files=[...state.queue.entries()].map(([p,v])=>({path:p,...v}));let s=0,f=0;for(const file of files){try{btn.textContent=`Submitting ${s+1}/${files.length}...`;const probe=await probeForBatch(file.path);if(!probe){f++;continue;}const sel=[];for(const st of probe.streams){if(st.codec_type==='video'){sel.push(st.index);continue;}if(st.codec_type==='audio'){if(opts.trackMode==='all') sel.push(st.index);else if(opts.trackMode==='default'&&(st.default||st.language==='eng'||st.language==='und')) sel.push(st.index);else if(opts.trackMode==='video-only'&&st.default) sel.push(st.index);}if(st.codec_type==='subtitle'&&opts.subtitleMode==='soft'&&!resumable){if(opts.trackMode==='all') sel.push(st.index);else if(opts.trackMode==='default'&&(st.default||st.language==='eng')) sel.push(st.index);}}if(!sel.some(i=>probe.streams.find(s=>s.index===i&&s.codec_type==='audio'))){const fa=probe.streams.find(s=>s.codec_type==='audio');if(fa) sel.push(fa.index);}const ka=probe.streams.filter(s=>sel.includes(s.index)&&s.codec_type==='audio');const mc=ka.reduce((m,s)=>Math.max(m,s.channels||0),0);const ab=Math.max(opts.audioBitrateBase,snapAudioBitrate(recommendAudioBitrate(mc)));const body={inputPath:file.path,selectedStreams:sel,encoder:opts.encoder,crf:opts.crf,hwQuality:opts.hwQuality,preset:opts.preset,audioMode:'auto',audioBitrate:ab+'k',subtitleMode:resumable?'none':opts.subtitleMode,maxHeight:opts.maxHeight,outputName:file.name.replace(/\.[^.]+$/,'')+'.mp4',replaceOriginal:repl,resumable};const r=await fetch('/api/convert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.ok) s++;else f++;}catch{f++;}}btn.disabled=false;btn.textContent='Start Batch';alert(`Queued ${s} job(s)${f?', '+f+' failed':''}.`);state.queue.clear();browse(state.cwd);updateQueueUI();showTab('jobs');loadJobs();}
 
-// ---- Jobs (active + recent) ----
-function jobCard(j, opts) {
-  opts = opts || {};
-  let sizeText;
-  if (j.outputSize) {
-    const pct=Math.round((1-j.outputSize/j.inputSize)*100), cls=pct>0?'shrink':'grow', sign=pct>0?'-':'+';
-    sizeText=`${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;
-  } else sizeText=fmtBytes(j.inputSize);
+// ---- Jobs ----
+function jobCard(j){
+  let sizeText; if(j.outputSize){const pct=Math.round((1-j.outputSize/j.inputSize)*100),cls=pct>0?'shrink':'grow',sign=pct>0?'-':'+';sizeText=`${fmtBytes(j.inputSize)} → ${fmtBytes(j.outputSize)} <span class="${cls}">${sign}${Math.abs(pct)}%</span>`;}else sizeText=fmtBytes(j.inputSize);
   const encL=j.encoder==='qsv'?'QSV':j.encoder==='nvenc'?'NVENC':'CPU';
   const repl=j.replacedOriginal?`<span style="color:var(--good);font-weight:600">✓ replaced</span>`:'';
   const resBadge=j.resumable?`<span style="color:var(--accent-2);font-weight:600">⟲ resumable</span>`:'';
   const segInfo=j.resumable&&j.segmentsTotal>1?`<span>seg ${j.segmentsDone}/${j.segmentsTotal}</span>`:'';
   const canRestart=j.status==='interrupted'||j.status==='error'||j.status==='cancelled';
-  return `<div class="job">
-    <div class="job-head"><div class="job-name">${j.input.split('/').pop()}</div><span class="status ${j.status}">${j.status}</span></div>
+  return `<div class="job"><div class="job-head"><div class="job-name">${j.input.split('/').pop()}</div><span class="status ${j.status}">${j.status}</span></div>
     <div class="bar"><div style="width:${j.progress||0}%"></div></div>
-    <div class="job-meta">
-      <span>${(j.progress||0).toFixed(1)}%</span>
-      ${segInfo}
-      ${j.encoder?`<span style="color:var(--accent-2)">${encL}</span>`:''}
-      ${resBadge}
-      ${j.speed?`<span>${j.speed}x</span>`:''}
-      ${j.fps?`<span>${j.fps} fps</span>`:''}
-      ${j.eta?`<span>ETA ${fmtDur(j.eta)}</span>`:''}
-      <span>${sizeText}</span>
-      ${repl}
-      ${j.error?`<span style="color:var(--err)">${j.error}</span>`:''}
-    </div>
+    <div class="job-meta"><span>${(j.progress||0).toFixed(1)}%</span>${segInfo}${j.encoder?`<span style="color:var(--accent-2)">${encL}</span>`:''}${resBadge}${j.speed?`<span>${j.speed}x</span>`:''}${j.fps?`<span>${j.fps} fps</span>`:''}${j.eta?`<span>ETA ${fmtDur(j.eta)}</span>`:''}
+    <span>${sizeText}</span>${repl}${j.error?`<span style="color:var(--err)">${j.error}</span>`:''}</div>
     <div style="margin-top:8px;display:flex;gap:6px">
       ${j.status==='running'||j.status==='queued'?`<button class="ghost small" onclick="cancelJob('${j.id}')">Cancel</button>`:''}
       ${canRestart?`<button class="ghost small" onclick="restartJob('${j.id}')">Restart${j.resumable?' (resume)':''}</button>`:''}
       ${j.status!=='running'?`<button class="ghost small" onclick="removeJob('${j.id}')">Remove</button>`:''}
       <button class="ghost small" onclick="showLogDetail('${j.id}')">View log</button>
-    </div>
-  </div>`;
+    </div></div>`;
 }
-function renderJobs() {
+function renderJobs(){
   const el=document.getElementById('jobs');
   const active=state.jobs.filter(j=>j.status==='running'||j.status==='queued'||j.status==='interrupted');
   const recent=state.jobs.filter(j=>j.status==='done'||j.status==='error'||j.status==='cancelled').slice(0,10);
-  if (!active.length && !recent.length) { el.innerHTML='<div class="empty">No jobs yet.</div>'; return; }
-  let html='';
-  if (active.length) html += active.map(j=>jobCard(j)).join('');
-  if (recent.length) html += `<div style="margin-top:14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Recent</div>` + recent.map(j=>jobCard(j)).join('');
+  if(!active.length&&!recent.length){el.innerHTML='<div class="empty">No jobs yet.</div>';return;}
+  let html=''; if(active.length) html+=active.map(j=>jobCard(j)).join('');
+  if(recent.length) html+=`<div style="margin-top:14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Recent</div>`+recent.map(j=>jobCard(j)).join('');
   el.innerHTML=html;
 }
-async function loadJobs() { const r=await fetch('/api/jobs'); state.jobs=await r.json(); renderJobs(); if (document.getElementById('tab-log').style.display!=='none') renderLogTab(); }
-async function cancelJob(id) { await fetch('/api/jobs/'+id+'/cancel',{method:'POST'}); loadJobs(); }
-async function removeJob(id) { await fetch('/api/jobs/'+id,{method:'DELETE'}); loadJobs(); }
-async function restartJob(id) { const r=await fetch('/api/jobs/'+id+'/restart',{method:'POST'}); const d=await r.json(); if (d.error) alert(d.error); loadJobs(); }
+async function loadJobs(){const r=await fetch('/api/jobs');state.jobs=await r.json();renderJobs();if(document.getElementById('tab-log').style.display!=='none') renderLogTab();}
+async function cancelJob(id){await fetch('/api/jobs/'+id+'/cancel',{method:'POST'});loadJobs();}
+async function removeJob(id){await fetch('/api/jobs/'+id,{method:'DELETE'});loadJobs();}
+async function restartJob(id){const r=await fetch('/api/jobs/'+id+'/restart',{method:'POST'});const d=await r.json();if(d.error) alert(d.error);loadJobs();}
 
-// ---- Log tab ----
-async function showLogDetail(id) { state.openLogId=id; showTab('log'); renderLogTab(); }
-async function renderLogTab() {
-  const el=document.getElementById('logContent');
-  const all=state.jobs;
-  const total=all.length;
-  const done=all.filter(j=>j.status==='done').length;
-  const failed=all.filter(j=>j.status==='error').length;
-  const interrupted=all.filter(j=>j.status==='interrupted').length;
+// ---- Log ----
+async function showLogDetail(id){state.openLogId=id;showTab('log');renderLogTab();}
+async function renderLogTab(){
+  const el=document.getElementById('logContent'); const all=state.jobs;
+  const total=all.length,done=all.filter(j=>j.status==='done').length,failed=all.filter(j=>j.status==='error').length,interrupted=all.filter(j=>j.status==='interrupted').length;
   const totalSaved=all.filter(j=>j.status==='done'&&j.outputSize&&j.inputSize).reduce((s,j)=>s+(j.inputSize-j.outputSize),0);
-
   let detail='';
-  if (state.openLogId) {
-    const j=state.jobs.find(x=>x.id===state.openLogId);
-    if (j) {
-      const r=await fetch('/api/jobs/'+state.openLogId+'/log');
-      const d=await r.json();
-      detail=`<div class="log-detail">
-        <h3>${j.input.split('/').pop()}</h3>
-        <div class="meta-row">
-          <div class="k">Status</div><div><span class="status ${j.status}">${j.status}</span></div>
-          <div class="k">Encoder</div><div>${j.encoder||'-'}</div>
-          <div class="k">Resumable</div><div>${j.resumable?'yes':'no'}</div>
-          <div class="k">Source path</div><div style="word-break:break-all">${j.input}</div>
-          <div class="k">Output path</div><div style="word-break:break-all">${j.finalPath||j.output}</div>
-          <div class="k">Source size</div><div>${fmtBytes(j.inputSize)}</div>
-          <div class="k">Output size</div><div>${j.outputSize?fmtBytes(j.outputSize)+' ('+(Math.round((1-j.outputSize/j.inputSize)*100))+'% smaller)':'-'}</div>
-          <div class="k">Duration</div><div>${fmtDur(j.duration)}</div>
-          <div class="k">Started</div><div>${fmtDate(j.startedAt)}</div>
-          <div class="k">Finished</div><div>${fmtDate(j.finishedAt)}</div>
-          ${j.error?`<div class="k">Error</div><div style="color:var(--err)">${j.error}</div>`:''}
-        </div>
-        <div class="log-toolbar">
-          <input class="log-search" id="logSearch" placeholder="Filter log..." />
-          <button class="ghost small" onclick="document.getElementById('logSearch').value='';filterLog()">Clear</button>
-          <button class="ghost small" onclick="state.openLogId=null;renderLogTab()">Close</button>
-        </div>
-        <pre class="log-pre" id="logPre">${(d.log||'(no log)').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</pre>
-      </div>`;
-    }
-  }
-
-  const list = all.length ? all.slice(0,200).map(j=>{
-    const ago = j.finishedAt?fmtAgo(j.finishedAt):(j.startedAt?fmtAgo(j.startedAt):fmtAgo(j.createdAt));
-    let trail='';
-    if (j.status==='done'&&j.outputSize) {
-      const pct=Math.round((1-j.outputSize/j.inputSize)*100);
-      trail=`<span class="${pct>0?'shrink':'grow'}">${pct>0?'-':'+'}${Math.abs(pct)}%</span>`;
-    }
-    return `<div class="log-row" onclick="showLogDetail('${j.id}')">
-      <span class="status ${j.status}" style="min-width:90px;text-align:center">${j.status}</span>
-      <span class="name">${j.input.split('/').pop()}</span>
-      ${trail}
-      <span class="when">${ago}</span>
-    </div>`;
-  }).join('') : '<div class="empty">No conversions logged yet.</div>';
-
-  el.innerHTML = `
-    <div class="log-stats">
-      <div class="stat-card"><div class="label">Total jobs</div><div class="value">${total}</div></div>
-      <div class="stat-card success"><div class="label">Successful</div><div class="value">${done}</div></div>
-      <div class="stat-card error"><div class="label">Failed</div><div class="value">${failed}</div></div>
-      <div class="stat-card interrupted"><div class="label">Interrupted</div><div class="value">${interrupted}</div></div>
-    </div>
-    ${totalSaved>0?`<div style="font-size:13px;color:var(--good);margin-bottom:14px">💾 Total space saved: <b>${fmtBytes(totalSaved)}</b></div>`:''}
-    ${detail}
-    <div style="margin-top:14px">${list}</div>
-  `;
-  const ls=document.getElementById('logSearch'); if (ls) ls.oninput=filterLog;
+  if(state.openLogId){const j=state.jobs.find(x=>x.id===state.openLogId);if(j){const r=await fetch('/api/jobs/'+state.openLogId+'/log');const d=await r.json();detail=`<div class="log-detail"><h3>${j.input.split('/').pop()}</h3><div class="meta-row"><div class="k">Status</div><div><span class="status ${j.status}">${j.status}</span></div><div class="k">Encoder</div><div>${j.encoder||'-'}</div><div class="k">Resumable</div><div>${j.resumable?'yes':'no'}</div><div class="k">Source</div><div style="word-break:break-all">${j.input}</div><div class="k">Output</div><div style="word-break:break-all">${j.finalPath||j.output}</div><div class="k">Source size</div><div>${fmtBytes(j.inputSize)}</div><div class="k">Output size</div><div>${j.outputSize?fmtBytes(j.outputSize)+' ('+(Math.round((1-j.outputSize/j.inputSize)*100))+'% smaller)':'-'}</div><div class="k">Duration</div><div>${fmtDur(j.duration)}</div><div class="k">Started</div><div>${fmtDate(j.startedAt)}</div><div class="k">Finished</div><div>${fmtDate(j.finishedAt)}</div>${j.error?`<div class="k">Error</div><div style="color:var(--err)">${j.error}</div>`:''}</div><div class="log-toolbar"><input class="log-search" id="logSearch" placeholder="Filter log..." /><button class="ghost small" onclick="document.getElementById('logSearch').value='';filterLog()">Clear</button><button class="ghost small" onclick="state.openLogId=null;renderLogTab()">Close</button></div><pre class="log-pre" id="logPre">${(d.log||'(no log)').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</pre></div>`;}}
+  const list=all.length?all.slice(0,200).map(j=>{const ago=j.finishedAt?fmtAgo(j.finishedAt):(j.startedAt?fmtAgo(j.startedAt):fmtAgo(j.createdAt));let trail='';if(j.status==='done'&&j.outputSize){const pct=Math.round((1-j.outputSize/j.inputSize)*100);trail=`<span class="${pct>0?'shrink':'grow'}">${pct>0?'-':'+'}${Math.abs(pct)}%</span>`;}return `<div class="log-row" onclick="showLogDetail('${j.id}')"><span class="status ${j.status}" style="min-width:90px;text-align:center">${j.status}</span><span class="name">${j.input.split('/').pop()}</span>${trail}<span class="when">${ago}</span></div>`;}).join(''):'<div class="empty">No conversions logged yet.</div>';
+  el.innerHTML=`<div class="log-stats"><div class="stat-card"><div class="label">Total</div><div class="value">${total}</div></div><div class="stat-card success"><div class="label">Successful</div><div class="value">${done}</div></div><div class="stat-card error"><div class="label">Failed</div><div class="value">${failed}</div></div><div class="stat-card interrupted"><div class="label">Interrupted</div><div class="value">${interrupted}</div></div></div>${totalSaved>0?`<div style="font-size:13px;color:var(--good);margin-bottom:14px">💾 Total space saved: <b>${fmtBytes(totalSaved)}</b></div>`:''}${detail}<div style="margin-top:14px">${list}</div>`;
+  const ls=document.getElementById('logSearch');if(ls) ls.oninput=filterLog;
 }
-function filterLog() {
-  const q=document.getElementById('logSearch').value.toLowerCase();
-  const pre=document.getElementById('logPre'); if (!pre) return;
-  if (!q) { pre.style.opacity=1; return; }
-  // Simple highlight: dim non-matching lines
-  const lines=pre.textContent.split('\n');
-  pre.innerHTML=lines.map(l=>l.toLowerCase().includes(q)?`<span style="background:#3a3a1e">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`:`<span style="opacity:0.35">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`).join('\n');
-}
+function filterLog(){const q=document.getElementById('logSearch').value.toLowerCase();const pre=document.getElementById('logPre');if(!pre) return;if(!q){pre.style.opacity=1;return;}const lines=pre.textContent.split('\n');pre.innerHTML=lines.map(l=>l.toLowerCase().includes(q)?`<span style="background:#3a3a1e">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`:`<span style="opacity:0.35">${l.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</span>`).join('\n');}
 
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
-  ['convert','batch','jobs','log'].forEach(n=>document.getElementById('tab-'+n).style.display=n===name?'':'none');
-  if (name==='jobs') loadJobs();
-  if (name==='batch') renderBatch();
-  if (name==='log') { loadJobs(); }
-}
+function showTab(name){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));['convert','batch','jobs','log'].forEach(n=>document.getElementById('tab-'+n).style.display=n===name?'':'none');if(name==='jobs') loadJobs();if(name==='batch') renderBatch();if(name==='log') loadJobs();}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
-function updateHwPills() { const set=(id,on)=>{document.getElementById(id).classList.toggle('active',on);}; set('hwCpu',true); set('hwQsv',state.caps.qsv); set('hwNvenc',state.caps.nvenc); }
+function updateHwPills(){document.getElementById('hwCpu').classList.add('active');document.getElementById('hwQsv').classList.toggle('active',state.caps.qsv);document.getElementById('hwNvenc').classList.toggle('active',state.caps.nvenc);}
 
 const proto=location.protocol==='https:'?'wss':'ws';
 const ws=new WebSocket(`${proto}://${location.host}/ws`);
-ws.onmessage=ev=>{
-  const m=JSON.parse(ev.data);
-  if (m.type==='hello') { state.jobs=m.jobs; if (m.capabilities){state.caps=m.capabilities;updateHwPills();} renderJobs(); }
-  if (m.type==='job') { const i=state.jobs.findIndex(j=>j.id===m.job.id); if (i>=0) state.jobs[i]=m.job; else state.jobs.unshift(m.job); renderJobs(); }
-  if (m.type==='progress') { const j=state.jobs.find(x=>x.id===m.id); if (j) Object.assign(j,m); renderJobs(); }
-  if (m.type==='removed') { state.jobs=state.jobs.filter(j=>j.id!==m.id); renderJobs(); }
-};
-
+ws.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.type==='hello'){state.jobs=m.jobs;if(m.capabilities){state.caps=m.capabilities;updateHwPills();}renderJobs();}if(m.type==='job'){const i=state.jobs.findIndex(j=>j.id===m.job.id);if(i>=0) state.jobs[i]=m.job; else state.jobs.unshift(m.job);renderJobs();}if(m.type==='progress'){const j=state.jobs.find(x=>x.id===m.id);if(j) Object.assign(j,m);renderJobs();}if(m.type==='removed'){state.jobs=state.jobs.filter(j=>j.id!==m.id);renderJobs();}};
 fetch('/api/capabilities').then(r=>r.json()).then(c=>{state.caps=c;updateHwPills();});
 fetch('/api/health').then(r=>r.json()).then(h=>{document.getElementById('health').textContent=`${h.mediaRoot} → ${h.outputDir}`;});
 browse('');

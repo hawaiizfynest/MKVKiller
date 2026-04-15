@@ -1,4 +1,4 @@
-// MKVForge server - per-track control + HW encoding + persistent log + resumable encoding
+// MKVKiller server - per-track control + HW encoding + persistent log + resumable encoding
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -652,7 +652,7 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`MKVForge listening on :${PORT}`);
+  console.log(`MKVKiller listening on :${PORT}`);
   console.log(`MEDIA_ROOT=${MEDIA_ROOT} OUTPUT_DIR=${OUTPUT_DIR} DATA_DIR=${DATA_DIR}`);
   // Auto-resume any interrupted jobs immediately
   setTimeout(() => {

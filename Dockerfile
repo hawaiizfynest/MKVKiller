@@ -13,8 +13,9 @@ RUN npm install --omit=dev
 # ---------- Runtime ----------
 FROM node:20-bookworm-slim
 
-# Enable contrib + non-free repos (needed for intel-media-va-driver-non-free).
-# Bookworm uses the new deb822 sources format at /etc/apt/sources.list.d/debian.sources.
+# Enable contrib + non-free for intel-media-va-driver-non-free (amd64 only).
+# Then install ffmpeg + base VA-API runtime on all archs, and Intel-specific
+# drivers only on amd64 (they don't exist for arm64).
 RUN set -eux; \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's/^Components: main$/Components: main contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources; \
@@ -22,15 +23,21 @@ RUN set -eux; \
     if [ -f /etc/apt/sources.list ]; then \
         sed -i 's/main$/main contrib non-free non-free-firmware/' /etc/apt/sources.list; \
     fi; \
-    apt-get update && \
+    apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates tini gosu \
         ffmpeg \
-        vainfo \
-        intel-media-va-driver-non-free \
-        i965-va-driver \
-        libva2 libva-drm2 \
-    && rm -rf /var/lib/apt/lists/*
+        libva2 libva-drm2; \
+    ARCH="$(dpkg --print-architecture)"; \
+    if [ "$ARCH" = "amd64" ]; then \
+        apt-get install -y --no-install-recommends \
+            vainfo \
+            intel-media-va-driver-non-free \
+            i965-va-driver; \
+    else \
+        echo "Skipping Intel VA-API drivers on $ARCH (not supported)"; \
+    fi; \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
